@@ -71,7 +71,11 @@ would replace old values.
 Be aware, you should access your configuration property values after load
 configuration file. If not, you might get wrong/old/default value.
 
->>> conf.load_conf_file('path/to/conf.py')
+.. code:: python
+
+   from confect import Conf
+   conf = Conf()
+   conf.load_conf_file('path/to/conf.py')
 
 The default configuration file is in Python. That makes your configuration file
 programmable and unrestricted. In configuration file, import ``confect.c``
@@ -110,15 +114,18 @@ through the import system of Python. Put your configuration file somewhere under
 your package or make ``PYTHONPATH`` pointing to the directory it resides. Then
 load it with ``Conf.load_conf_module(module_name)``.
 
-.. code-block:: bash
+.. code:: bash
 
    $ edit my_conf.py
    $ export PYTHONPATH=.
    $ python your_application.py
 
->>> from confect import Conf
->>> conf = Conf()
->>> conf.load_conf_module('my_conf')
+
+.. code:: python
+
+   from confect import Conf
+   conf = Conf()
+   conf.load_conf_module('my_conf')
 
 Local Environment
 -----------------
