@@ -34,19 +34,22 @@ access these properties. Normally, the group name is your class name, module
 name or subpackage name.
 
 
->>> from your_package import conf
->>> with conf.add_group('yummy') as yummy:
-...     yummy.kind = 'seafood'
-...     yummy.name = 'fish'
-...     yummy.weight = 10
->>> conf.yummy.name
-'fish'
->>> conf.yummy.weight
-10
->>> class Yummy:
-...     yummy_conf = conf.yummy
-... def get_kind(self):
-...     return yummy_conf.kind
+.. code:: python
+
+   from your_package import conf
+   with conf.add_group('yummy') as yummy:
+       yummy.kind = 'seafood'
+       yummy.name = 'fish'
+       yummy.weight = 10
+
+   def print_yummy():
+       print(f'{yummy.kind} {yummy.name} {yummy.weight}')
+
+   class Yummy:
+       yummy_conf = conf.yummy
+
+   def get_kind(self):
+       return yummy_conf.kind
 
 Configuration properties and groups are immutable. You can only globally change
 it by loading configuration files. Otherwise, they are always default values.
