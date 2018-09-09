@@ -101,7 +101,7 @@ object temporarily mutable. All changes would be restored when it leaves the
 block.
 
 >>> conf = Conf()
->>> conf.add_group('dummy', prop1=3, prop2='some string')
+>>> conf.add_group('dummy', prop1=3, prop2='some string') # add group through keyword arguments
 >>> with conf.local_env():
 ...     conf.dummy.prop1 = 5
 ...     print(conf.dummy.prop1)
