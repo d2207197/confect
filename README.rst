@@ -11,7 +11,7 @@ Basic Usage
 Calling ``confect.Conf()`` creates a new configuration manager object. All
 configuration properties resides in it. It is possible to create multiple
 ``Conf`` object, but normally, one ``Conf`` object per application. Initialize
-it in some module, then import and use it anywhere in your application.
+one in some module, then import and use it anywhere in your application.
 
 Put following lines in your application package. For example, in ``your_package.__init__.py``.
 
