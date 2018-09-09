@@ -38,6 +38,10 @@ name or subpackage name.
 'fish'
 >>> conf.yummy.weight
 10
+>>> class Yummy:
+...     yummy_conf = conf.yummy
+... def get_kind(self):
+...     return yummy_conf.kind
 
 Configuration properties and groups are immutable. You can only globally change
 it by loading configuration files. Otherwise, they are always default values.
@@ -62,7 +66,10 @@ configuration file. If not, you might get wrong/old/default value.
 >>> conf.load_conf_file('path/to/conf.py')
 
 The default configuration file is in Python. That makes your configuration file
-programmable and unrestricted. Here's an example of configuration file.
+programmable and unrestricted. In configuration file, import ``confect.c``
+object and set all properties on it. The ``c`` object only exits when loading a
+python configuration file, you can't import in other than in it. Here's an
+example of configuration file.
 
 .. code-block:: python
 
@@ -79,6 +86,10 @@ programmable and unrestricted. Here's an example of configuration file.
    DEBUG = True
    if DEBUG:
        c.cache.disable = True
+
+You can set any property in any configuration group on the ``c`` object.
+However, they are only accessable if you declared it in the source code with
+``Conf.add_group(group_name)``.
 
 If it's hard for you to specify the path of configuration file. You can load it
 through the import system of Python. Put your configuration file somewhere under
