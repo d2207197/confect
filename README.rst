@@ -31,16 +31,28 @@ your module name or subpackage name.
 ...     yummy.kind = 'seafood'
 ...     yummy.name = 'fish'
 ...     yummy.weight = 10
->>> yummy.name
+>>> conf.yummy.name
 'fish'
->>> yummy.weight
+>>> conf.yummy.weight
 10
 
+Configuration properties and groups are immutable. You can only globally change
+it by loading configuration files. Otherwise, they are always default values.
+
+>>> conf.yummy.name = 'octopus'
+Traceback (most recent call last):
+   ...
+confect.error.FrozenConfPropError: Configuration properties are frozen.
+Configuration properties can only be changed globally by loading configuration file through ``Conf.load_conf_file()`` and ``Conf.load_conf_module()``.
+And it can be changed locally in the context created by `Conf.local_env()`.
+
 Use ``Conf.load_conf_file(path)`` or ``Conf.load_conf_module(module_name)`` to
-load configuration files. It can be loaded before or after groups/properties
-declaration. Loading multiple files is possible and won't break it. But be
-aware, you should access your configuration properties after load configuration
-file. If not, you might get wrong/old/default value of configuration property.
+load configuration files. No matter it is loaded before or after
+groups/properties declaration, property values in configuration file always
+override default values. Loading multiple files is possible, the latter one
+would replace old values. Be aware, you should access your configuration
+property values after load configuration file. If not, you might get
+wrong/old/default value.
 
 >>> conf.load_conf_file('path/to/conf.py')
 
