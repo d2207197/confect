@@ -1,8 +1,20 @@
 [tool.poetry]
 name = "confect"
 version = "0.1.0"
-description = ""
+description = "Python configuration library that provides pleasant configuration definition and access interface, and it reads unrestricted python configuration file."
 authors = ["顏孜羲 <joseph.yen@gmail.com>"]
+license = "apache-2.0"
+readme = "README.md"
+
+repository = "https://github.com/d2207197/confect"
+homepage = "https://github.com/d2207197/confect"
+documentation = "https://github.com/d2207197/confect"
+keywords = ["setting", "configuration"]
+
+classifiers = [
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.6"
