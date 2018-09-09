@@ -48,8 +48,8 @@ name or subpackage name.
    class Yummy:
        yummy_conf = conf.yummy
 
-   def get_kind(self):
-       return yummy_conf.kind
+       def get_kind(self):
+           return self.yummy_conf.kind
 
 Configuration properties and groups are immutable. You can only globally change
 it by loading configuration files. Otherwise, they are always default values.
