@@ -11,12 +11,16 @@ Basic Usage
 Calling ``confect.Conf()`` creates a new configuration manager object. All
 configuration properties resides in it. It is possible to create multiple
 ``Conf`` object, but normally, one ``Conf`` object per application. Initialize
-one in some module, then import and use it anywhere in your application.
+one ``Conf`` in some module, then import and use it anywhere in your
+application.
 
-Put following lines in your application package. For example, in ``your_package.__init__.py``.
+Put following lines in your application package. For example, in
+``your_package.__init__.py``.
 
->>> from confect import Conf
->>> conf = Conf()
+.. code:: python
+
+   from confect import conf
+   conf = Conf()
 
 Configuration properties should be declared before using it. Use
 ``Conf.add_group(group_name)`` context manager to declare a configuration group
@@ -28,6 +32,7 @@ Put your configuration group declaration code in the module which you need those
 properties. And make sure that the declaration is before all the lines that
 access these properties. Normally, the group name is your class name, module
 name or subpackage name.
+
 
 >>> from your_package import conf
 >>> with conf.add_group('yummy') as yummy:
