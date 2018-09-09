@@ -15,7 +15,7 @@ def _get_obj_attr(obj, attr):
 
 
 class Conf:
-    '''Configuration Manager
+    '''Configuration
 
     >>> conf = Conf()
     >>> conf.add_group('dummy', opt1=3, opt2='some string')
@@ -204,14 +204,6 @@ class Conf:
         with self._mutable_conf_ctx():
             with self._confect_c_ctx():
                 importlib.import_module(module_name)
-
-    def set_conf_file(self, path):
-        '''
-
-        '''
-
-    def set_conf_module(self, module_name):
-        pass
 
 
 class ConfGroupDefaultSetter:
