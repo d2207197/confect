@@ -18,14 +18,16 @@ Put following lines in your application package. For example, in ``your_package.
 >>> from confect import Conf
 >>> conf = Conf()
 
-Configuration properties should be declared with a default value and group name
-before using it. Default value can be any type as long as it can be deepcopy.
-Group name shuold be a valid attribute name.
+Configuration properties should be declared before using it. Use
+``Conf.add_group(group_name)`` context manager to declare a configuration group
+and all properties under it. It's nessasery to provide a default
+value for each properties. Default value can be any type as long as the value
+can be deepcopy. Group names shuold be valid attribute names.
 
 Put your configuration group declaration code in the module which you need those
-properties. And make sure that the declaration is before all lines that access
-these properties. Normally, the group name is your class name, module name or
-subpackage name.
+properties. And make sure that the declaration is before all the lines that
+access these properties. Normally, the group name is your class name, module
+name or subpackage name.
 
 >>> from your_package import conf
 >>> with conf.add_group('yummy') as yummy:
