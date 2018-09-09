@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "conflate"
+name = "confect"
 version = "0.1.0"
 description = ""
 authors = ["顏孜羲 <joseph.yen@gmail.com>"]

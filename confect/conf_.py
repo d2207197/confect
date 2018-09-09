@@ -4,8 +4,8 @@ import weakref
 from contextlib import contextmanager
 from copy import deepcopy
 
-from conflate.error import (ConfGroupExistsError, FrozenConfGroupError,
-                            FrozenConfPropError, UnknownConfError)
+from confect.error import (ConfGroupExistsError, FrozenConfGroupError,
+                           FrozenConfPropError, UnknownConfError)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class Conf:
     >>> conf.dummy.opt2 = 'other string'
     Traceback (most recent call last):
         ...
-    conflate.error.FrozenConfPropError: Configuration properties are frozen.
+    confect.error.FrozenConfPropError: Configuration properties are frozen.
     Configuration properties can only be changed globally by loading configuration file through ``Conf.load_conf_file()`` and ``Conf.load_conf_module()``.
     And it can be changed locally in the context created by `Conf.local_env()`.
 
@@ -37,7 +37,7 @@ class Conf:
                  )
 
     def __init__(self):
-        from conflate.conf_depot import ConfDepot
+        from confect.conf_depot import ConfDepot
         self._is_setting_imported = False
         self._is_frozen = True
         self._conf_depot = ConfDepot()
@@ -70,7 +70,7 @@ class Conf:
             group = ConfGroup(weakref.proxy(self), name, default_properties)
             self._conf_groups[name] = group
             if not default_properties:
-                return group._register_ctx()
+                return group._mutable_ctx()
 
     def _backup(self):
         return deepcopy(self._conf_groups)
@@ -105,11 +105,11 @@ class Conf:
         self._is_frozen = True
 
     @contextmanager
-    def _conflate_c_ctx(self):
-        import conflate
-        conflate.c = self._conf_depot
+    def _confect_c_ctx(self):
+        import confect
+        confect.c = self._conf_depot
         yield
-        del conflate.c
+        del confect.c
 
     def __contains__(self, group_name):
         return group_name in self._conf_groups
@@ -119,7 +119,7 @@ class Conf:
 
     def __getattr__(self, group_name):
         conf_groups = _get_obj_attr(self, '_conf_groups')
-        conf_depot = _get_obj_attr('_conf_depot')
+        conf_depot = _get_obj_attr(self, '_conf_depot')
         if group_name not in conf_groups:
             raise UnknownConfError(
                 f'Unknown configuration group {group_name!r}')
@@ -128,9 +128,8 @@ class Conf:
 
         if group_name in conf_depot:
             conf_depot_group = conf_depot[group_name]
-
-            for conf_property, value in conf_depot_group.items():
-                conf_group[conf_property] = value
+            conf_group._update_from_conf_depot_group(conf_depot_group)
+            del conf_depot[group_name]
 
         return conf_group
 
@@ -140,7 +139,7 @@ class Conf:
         else:
             raise FrozenConfGroupError(
                 'Configuration groups are frozen. '
-                'Call `conflate.add_group()` for '
+                'Call `confect.add_group()` for '
                 'registering new configuration group.'
             )
 
@@ -164,13 +163,14 @@ class Conf:
         '''Load python configuration file through file path.
 
         All configuration groups and properties should be registered first.
+        Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
         >>> conf.load_conf_file('path/to/conf.py')  # doctest: +SKIP
 
         Configuration file example
         ```
-        from conflate import c
+        from confect import c
         c.yammy.kind = 'seafood'
         c.yammy.name = 'fish'
         ```
@@ -180,7 +180,7 @@ class Conf:
             path = Path(path)
 
         with self._mutable_conf_ctx():
-            with self._conflate_c_ctx():
+            with self._confect_c_ctx():
                 exec(path.open('r').read())
 
     def load_conf_module(self, module_name):
@@ -189,19 +189,20 @@ class Conf:
         or was install as a package.
 
         All configuration groups and properties should be registered first.
+        Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
         >>> conf.load_conf_file('path/to/conf.py')  # doctest: +SKIP
 
         Configuration file example
         ```
-        from conflate import c
+        from confect import c
         c.yammy.kind = 'seafood'
         c.yammy.name = 'fish'
         ```
         '''  # noqa
         with self._mutable_conf_ctx():
-            with self._conflate_c_ctx():
+            with self._confect_c_ctx():
                 importlib.import_module(module_name)
 
     def set_conf_file(self, path):
@@ -214,12 +215,12 @@ class Conf:
 
 
 class ConfGroup:
-    __slots__ = '_conf', '_name', '_properties', '_is_registering'
+    __slots__ = '_conf', '_name', '_properties', '_is_mutable'
 
     def __init__(self, conf: Conf, name: str, default_properties: dict):
         self._conf = conf
         self._name = name
-        self._is_registering = False
+        self._is_mutable = False
         self._properties = default_properties
 
     def __getattr__(self, key):
@@ -235,14 +236,14 @@ class ConfGroup:
         new_self = cls.__new__(cls)
         new_self._conf = self._conf  # Don't need to copy conf
         new_self._name = self._name
-        new_self._is_registering = self._is_registering
+        new_self._is_mutable = self._is_mutable
         new_self._properties = deepcopy(self._properties)
         return new_self
 
     def __setattr__(self, key, value):
         if key in self.__slots__:
             object.__setattr__(self, key, value)
-        elif self._is_registering:
+        elif self._is_mutable:
             self._properties[key] = value
         elif key not in self._properties:
             raise UnknownConfError(
@@ -264,7 +265,12 @@ class ConfGroup:
         return self._properties.__dir__()
 
     @contextmanager
-    def _register_ctx(self):
-        self._is_registering = True
+    def _mutable_ctx(self):
+        self._is_mutable = True
         yield self
-        self._is_registering = False
+        self._is_mutable = False
+
+    def _update_from_conf_depot_group(self, conf_depot_group):
+        with self._mutable_ctx():
+            for conf_property, value in conf_depot_group._items():
+                setattr(self, conf_property, value)

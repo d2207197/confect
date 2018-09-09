@@ -10,6 +10,9 @@ class ConfDepot:
     def __init__(self):
         self._depot_groups = {}
 
+    def __delitem__(self, group_name):
+        del self._depot_groups[group_name]
+
     def __getitem__(self, group_name):
         return self._depot_groups[group_name]
 
@@ -39,23 +42,30 @@ class ConfDepot:
         return group_name in self._depot_groups
 
 
-from collections import UserDict
+class ConfDepotGroup:
+    __slots__ = '_depot_properties'
 
+    def __init__(self):
+        self._depot_properties = {}
 
-class ConfDepotGroup(UserDict):
+    def _items(self):
+        return self._depot_properties.items()
 
-    def __getitem__(self, group_name):
-        return self._depot_properties[group_name]
+    def __getitem__(self, property_name):
+        return self._depot_properties[property_name]
 
-    def __getattr__(self, group_name):
+    def __setitem__(self, property_name):
+        return self._depot_properties[property_name]
+
+    def __getattr__(self, property_name):
         depot_properties = _get_obj_attr(self, '_depot_properties')
 
-        if group_name not in depot_properties:
+        if property_name not in depot_properties:
             raise AttributeError(
-                f'ConfDepotGroup object has no property {group_name!r}'
+                f'ConfDepotGroup object has no property {property_name!r}'
             )
 
-        return depot_properties[group_name]
+        return depot_properties[property_name]
 
     def __setattr__(self, name, value):
         if name in self.__slots__:

@@ -3,8 +3,8 @@ import textwrap
 
 import pytest
 
-from conflate import (Conf, FrozenConfGroupError, FrozenConfPropError,
-                      UnknownConfError, __version__)
+from confect import (Conf, FrozenConfGroupError, FrozenConfPropError,
+                     UnknownConfError, __version__)
 
 
 def test_version():
@@ -68,7 +68,7 @@ def test_mutable_env(dummy_conf):
 def conf_file(tmpdir_factory):
     p = tmpdir_factory.getbasetemp().join('conf.py')
     p.write(textwrap.dedent('''
-        from conflate import c
+        from confect import c
         c.dummy.x = 5
         c.dummy.y = 'other string'
         '''))
