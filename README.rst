@@ -46,6 +46,9 @@ confect.error.FrozenConfPropError: Configuration properties are frozen.
 Configuration properties can only be changed globally by loading configuration file through ``Conf.load_conf_file()`` and ``Conf.load_conf_module()``.
 And it can be changed locally in the context created by `Conf.local_env()`.
 
+Configuration File
+------------------
+
 Use ``Conf.load_conf_file(path)`` or ``Conf.load_conf_module(module_name)`` to
 load configuration files. No matter it is loaded before or after
 groups/properties declaration, property values in configuration file always
