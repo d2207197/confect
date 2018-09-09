@@ -70,7 +70,7 @@ class Conf:
             group = ConfGroup(weakref.proxy(self), name, default_properties)
             self._conf_groups[name] = group
             if not default_properties:
-                return group._mutable_ctx()
+                return group._default_setter()
 
     def _backup(self):
         return deepcopy(self._conf_groups)
@@ -162,7 +162,7 @@ class Conf:
     def load_conf_file(self, path):
         '''Load python configuration file through file path.
 
-        All configuration groups and properties should be registered first.
+        All configuration groups and properties should be added through Conf.add_group() in your source code.
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
@@ -174,7 +174,7 @@ class Conf:
         c.yammy.kind = 'seafood'
         c.yammy.name = 'fish'
         ```
-        '''
+        '''  # noqa
         from pathlib import Path
         if not isinstance(path, Path):
             path = Path(path)
@@ -188,7 +188,7 @@ class Conf:
         The module should be importable either through PYTHONPATH
         or was install as a package.
 
-        All configuration groups and properties should be registered first.
+        All configuration groups and properties should be added through Conf.add_group() in your source code.
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
@@ -214,40 +214,53 @@ class Conf:
         pass
 
 
+class ConfGroupDefaultSetter:
+    __slots__ = '_conf_group'
+
+    def __init__(self, conf_group):
+        self._conf_group = conf_group
+
+    def __getattr__(self, property_name):
+        return getattr(self._conf_group, property_name)
+
+    def __setattr__(self, property_name, value):
+        if property_name in self.__slots__:
+            object.__setattr__(self, property_name, value)
+        else:
+            self._conf_group._defaults[property_name] = value
+
+
 class ConfGroup:
-    __slots__ = '_conf', '_name', '_properties', '_is_mutable'
+    __slots__ = '_conf', '_name', '_properties', '_is_mutable', '_defaults'
 
     def __init__(self, conf: Conf, name: str, default_properties: dict):
         self._conf = conf
         self._name = name
         self._is_mutable = False
-        self._properties = default_properties
+        self._defaults = deepcopy(default_properties)
+        self._properties = {}
 
-    def __getattr__(self, key):
-        if key not in _get_obj_attr(self, '_properties'):
+    def __getattr__(self, property_name):
+        properties = _get_obj_attr(self, '_properties')
+        defaults = _get_obj_attr(self, '_defaults')
+
+        if property_name in properties:
+            return properties[property_name]
+        elif property_name in defaults:
+            return defaults[property_name]
+        else:
             raise UnknownConfError(
-                f'Unknown {key!r} property in '
+                f'Unknown {property_name!r} property in '
                 f'configuration group {self._name!r}')
 
-        return object.__getattribute__(self, '_properties')[key]
-
-    def __deepcopy__(self, memo):
-        cls = type(self)
-        new_self = cls.__new__(cls)
-        new_self._conf = self._conf  # Don't need to copy conf
-        new_self._name = self._name
-        new_self._is_mutable = self._is_mutable
-        new_self._properties = deepcopy(self._properties)
-        return new_self
-
-    def __setattr__(self, key, value):
-        if key in self.__slots__:
-            object.__setattr__(self, key, value)
+    def __setattr__(self, property_name, value):
+        if property_name in self.__slots__:
+            object.__setattr__(self, property_name, value)
         elif self._is_mutable:
-            self._properties[key] = value
-        elif key not in self._properties:
+            self._properties[property_name] = value
+        elif property_name not in self._defaults:
             raise UnknownConfError(
-                f'Unknown {key!r} property in '
+                f'Unknown {property_name!r} property in '
                 'configuration group {self.name!r}')
         elif self._conf._is_frozen:
             raise FrozenConfPropError(
@@ -259,7 +272,7 @@ class ConfGroup:
                 'created by `Conf.local_env()`.'
             )
         else:
-            self._properties[key] = value
+            self._properties[property_name] = value
 
     def __dir__(self):
         return self._properties.__dir__()
@@ -270,7 +283,21 @@ class ConfGroup:
         yield self
         self._is_mutable = False
 
+    @contextmanager
+    def _default_setter(self):
+        yield ConfGroupDefaultSetter(self)
+
     def _update_from_conf_depot_group(self, conf_depot_group):
         with self._mutable_ctx():
             for conf_property, value in conf_depot_group._items():
                 setattr(self, conf_property, value)
+
+    def __deepcopy__(self, memo):
+        cls = type(self)
+        new_self = cls.__new__(cls)
+        new_self._conf = self._conf  # Don't need to copy conf
+        new_self._name = self._name
+        new_self._is_mutable = self._is_mutable
+        new_self._defaults = deepcopy(self._defaults)
+        new_self._properties = deepcopy(self._properties)
+        return new_self

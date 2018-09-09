@@ -91,3 +91,22 @@ def test_load_conf_module(dummy_conf, conf_file):
     dummy_conf.load_conf_module('conf')
     assert dummy_conf.dummy.x == 5
     assert dummy_conf.dummy.y == 'other string'
+
+
+def test_add_group_after_load_conf(conf_file):
+    conf = Conf()
+    conf.load_conf_file(conf_file)
+
+    with pytest.raises(UnknownConfError):
+        conf.dummy.x
+        conf.dummy.y
+
+    with conf.add_group('dummy') as dummy:
+        dummy.x = 3
+        dummy.y = 'some string'
+
+    assert conf.dummy.x == 5
+    assert conf.dummy.y == 'other string'
+
+    with pytest.raises(FrozenConfPropError):
+        conf.dummy.x = 5
