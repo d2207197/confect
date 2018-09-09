@@ -67,9 +67,7 @@ configuration file. If not, you might get wrong/old/default value.
 
 The default configuration file is in Python. That makes your configuration file
 programmable and unrestricted. In configuration file, import ``confect.c``
-object and set all properties on it. The ``c`` object only exits when loading a
-python configuration file, you can't import in other than in it. Here's an
-example of configuration file.
+object and set all properties on it. Here's an example of configuration file.
 
 .. code-block:: python
 
@@ -94,10 +92,10 @@ example of configuration file.
    c.secret.key = secret['key']
    c.secret.token = secret['token']
 
-
-You can set any property in any configuration group onto the ``c`` object.
-However, they are only accessable if you declared it in the source code with
-``Conf.add_group(group_name)``.
+The ``c`` object only exits when loading a python configuration file, it's not
+possible to import it in your source code. You can set any property in any
+configuration group onto the ``c`` object. However, they are only accessable if
+you declared it in the source code with ``Conf.add_group(group_name)``.
 
 If it's hard for you to specify the path of configuration file. You can load it
 through the import system of Python. Put your configuration file somewhere under
@@ -132,7 +130,7 @@ block.
 3
 
 
-TO-DOs
+To-Dos
 ======
 
 - Utility functions for loading dictionary into ConfDepotGroup
