@@ -77,6 +77,9 @@ def conf_file(tmpdir_factory):
 
 
 def test_load_conf_file(dummy_conf, conf_file):
+    with pytest.raises(FileNotFoundError):
+        dummy_conf.load_conf_file('somewhere/doesnot/exist')
+
     assert dummy_conf.dummy.x == 3
     assert dummy_conf.dummy.y == 'some string'
     dummy_conf.load_conf_file(conf_file)
@@ -85,6 +88,10 @@ def test_load_conf_file(dummy_conf, conf_file):
 
 
 def test_load_conf_module(dummy_conf, conf_file):
+
+    with pytest.raises(ImportError):
+        dummy_conf.load_conf_module('conf')
+
     assert dummy_conf.dummy.x == 3
     assert dummy_conf.dummy.y == 'some string'
     sys.path.append(str(conf_file.dirpath()))

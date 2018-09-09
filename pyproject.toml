@@ -9,7 +9,8 @@ readme = "README.rst"
 repository = "https://github.com/d2207197/confect"
 homepage = "https://github.com/d2207197/confect"
 documentation = "https://github.com/d2207197/confect"
-keywords = ["setting", "configuration"]
+
+keywords = ["setting", "configuration", "config"]
 
 classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules"
