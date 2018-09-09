@@ -4,11 +4,7 @@ import textwrap
 import pytest
 
 from confect import (Conf, FrozenConfGroupError, FrozenConfPropError,
-                     UnknownConfError, __version__)
-
-
-def test_version():
-    assert __version__ == '0.1.0'
+                     UnknownConfError)
 
 
 @pytest.fixture(scope='function')

@@ -1,4 +1,3 @@
-__version__ = '0.1.0'
 
 from .conf_ import Conf
 from .error import (ConfGroupExistsError, FrozenConfGroupError,
