@@ -94,6 +94,7 @@ example of configuration file.
    c.secret.key = secret['key']
    c.secret.token = secret['token']
 
+
 You can set any property in any configuration group onto the ``c`` object.
 However, they are only accessable if you declared it in the source code with
 ``Conf.add_group(group_name)``.
@@ -129,3 +130,9 @@ block.
 ...     call_some_function_use_this_property()
 >>> print(conf.dummy.prop1)  # all configuration restored
 3
+
+
+TO-DOs
+======
+
+- Utility functions for loading dictionary into ConfDepotGroup
