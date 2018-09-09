@@ -87,6 +87,13 @@ example of configuration file.
    if DEBUG:
        c.cache.disable = True
 
+   import json
+   with open('secret.json') as f:
+       secret = json.load(f)
+
+   c.secret.key = secret['key']
+   c.secret.token = secret['token']
+
 You can set any property in any configuration group on the ``c`` object.
 However, they are only accessable if you declared it in the source code with
 ``Conf.add_group(group_name)``.
