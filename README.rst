@@ -94,7 +94,7 @@ example of configuration file.
    c.secret.key = secret['key']
    c.secret.token = secret['token']
 
-You can set any property in any configuration group on the ``c`` object.
+You can set any property in any configuration group onto the ``c`` object.
 However, they are only accessable if you declared it in the source code with
 ``Conf.add_group(group_name)``.
 
