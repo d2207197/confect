@@ -3,11 +3,12 @@ Confect
 
 ``confect`` is a Python configuration library with the following features.
 
-- A unified and pleasant configuration definition and access interface
+- A unified and pleasant configuration definition and accessing interface
 - Immutable conf object for reducing the possibility of making errors
 - Configuration file written in Python. This makes it possible to
-  dynamically handle complicated logic in the configuration file or read
-  other TOML/YMAL/JSON files and even environment variables in it.
+  dynamically handle complicated logic in the configuration file, read
+  other TOML/YMAL/JSON files or even environment variables in it.
+- Support only Python 3.6 and after
 
 Basic Usage
 -----------
