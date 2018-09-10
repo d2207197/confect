@@ -18,9 +18,17 @@ class Conf:
     '''Configuration
 
     >>> conf = Conf()
-    >>> conf.declare_group('dummy', opt1=3, opt2='some string')
+
+    Declare new configuration properties with ``Conf.declare_group(group_name)``
+
+    >>> with conf.declare_group('dummy') as dummy:
+    ...     dummy.opt1 = 3
+    ...     dummy.opt2 = 'some string'
     >>> conf.dummy.opt1
     3
+
+    Configurations are immutable
+
     >>> conf.dummy.opt2 = 'other string'
     Traceback (most recent call last):
         ...
@@ -58,7 +66,9 @@ class Conf:
 
         Add new group and properties through function call
 
-        >>> conf.declare_group('dummy', num_prop=3, str_prop='some string')
+        >>> conf.declare_group('dummy',
+        ...                    num_prop=3,
+        ...                    str_prop='some string')
         >>> conf.dummy.num_prop
         3
         '''
@@ -84,13 +94,15 @@ class Conf:
         All configuration properties will be restored upon completion of the block.
 
         >>> conf = Conf()
-        >>> conf.declare_group('dummy', opt1=3, opt2='some string')
+        >>> with conf.declare_group('yummy') as yummy:
+        ...     yummy.kind='seafood'
+        ...     yummy.name='fish'
         >>> with conf.local_env():
-        ...     conf.dummy.opt1 = 5
-        ...     conf.dummy.opt1
-        5
-        >>> conf.dummy.opt1
-        3
+        ...     conf.yummy.name = 'octopus'
+        ...     print(conf.yummy.name)
+        octopus
+        >>> print(conf.yummy.name)
+        fish
 
         '''  # noqa
         conf_groups_backup = self._backup()

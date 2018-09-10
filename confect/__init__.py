@@ -1,12 +1,10 @@
 
-from .conf_ import Conf
+from .conf import Conf
 from .error import (ConfGroupExistsError, FrozenConfGroupError,
                     FrozenConfPropError, UnknownConfError)
 
-conf = Conf()
-
 __all__ = [
-    Conf, conf,
+    Conf,
     FrozenConfPropError, FrozenConfGroupError,
     UnknownConfError, ConfGroupExistsError
 ]
