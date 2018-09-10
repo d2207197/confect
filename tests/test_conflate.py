@@ -10,18 +10,18 @@ from confect import (Conf, FrozenConfGroupError, FrozenConfPropError,
 @pytest.fixture(scope='function')
 def dummy_conf():
     the_conf = Conf()
-    the_conf.add_group('dummy', x=3, y='some string')
+    the_conf.declare_group('dummy', x=3, y='some string')
     return the_conf
 
 
-def test_add_group():
+def test_declare_group():
     the_conf = Conf()
-    the_conf.add_group('dummy', x=3, y='some string')
+    the_conf.declare_group('dummy', x=3, y='some string')
     assert the_conf.dummy.x == 3
     assert the_conf.dummy.y == 'some string'
 
     the_conf = Conf()
-    with the_conf.add_group('dummy') as dummy:
+    with the_conf.declare_group('dummy') as dummy:
         dummy.x = 5
         dummy.y = 6
     assert the_conf.dummy.x == 5
@@ -96,7 +96,7 @@ def test_load_conf_module(dummy_conf, conf_file):
     assert dummy_conf.dummy.y == 'other string'
 
 
-def test_add_group_after_load_conf(conf_file):
+def test_declare_group_after_load_conf(conf_file):
     conf = Conf()
     conf.load_conf_file(conf_file)
 
@@ -104,7 +104,7 @@ def test_add_group_after_load_conf(conf_file):
         conf.dummy.x
         conf.dummy.y
 
-    with conf.add_group('dummy') as dummy:
+    with conf.declare_group('dummy') as dummy:
         dummy.x = 3
         dummy.y = 'some string'
 

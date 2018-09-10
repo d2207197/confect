@@ -18,7 +18,7 @@ class Conf:
     '''Configuration
 
     >>> conf = Conf()
-    >>> conf.add_group('dummy', opt1=3, opt2='some string')
+    >>> conf.declare_group('dummy', opt1=3, opt2='some string')
     >>> conf.dummy.opt1
     3
     >>> conf.dummy.opt2 = 'other string'
@@ -43,14 +43,14 @@ class Conf:
         self._conf_depot = ConfDepot()
         self._conf_groups = {}
 
-    def add_group(self, name, **default_properties):
+    def declare_group(self, name, **default_properties):
         '''Add new configuration group and all property names with default values
 
         >>> conf = Conf()
 
         Add new group and properties through context manager
 
-        >>> with conf.add_group('yummy') as yummy:
+        >>> with conf.declare_group('yummy') as yummy:
         ...     yummy.kind='seafood'
         ...     yummy.name='fish'
         >>> conf.yummy.name
@@ -58,7 +58,7 @@ class Conf:
 
         Add new group and properties through function call
 
-        >>> conf.add_group('dummy', num_prop=3, str_prop='some string')
+        >>> conf.declare_group('dummy', num_prop=3, str_prop='some string')
         >>> conf.dummy.num_prop
         3
         '''
@@ -84,7 +84,7 @@ class Conf:
         All configuration properties will be restored upon completion of the block.
 
         >>> conf = Conf()
-        >>> conf.add_group('dummy', opt1=3, opt2='some string')
+        >>> conf.declare_group('dummy', opt1=3, opt2='some string')
         >>> with conf.local_env():
         ...     conf.dummy.opt1 = 5
         ...     conf.dummy.opt1
@@ -139,7 +139,7 @@ class Conf:
         else:
             raise FrozenConfGroupError(
                 'Configuration groups are frozen. '
-                'Call `confect.add_group()` for '
+                'Call `confect.declare_group()` for '
                 'registering new configuration group.'
             )
 
@@ -162,7 +162,7 @@ class Conf:
     def load_conf_file(self, path):
         '''Load python configuration file through file path.
 
-        All configuration groups and properties should be added through Conf.add_group() in your source code.
+        All configuration groups and properties should be added through ``Conf.declare_group()`` in your source code.
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
@@ -188,7 +188,7 @@ class Conf:
         The module should be importable either through PYTHONPATH
         or was install as a package.
 
-        All configuration groups and properties should be added through Conf.add_group() in your source code.
+        All configuration groups and properties should be added through ``Conf.declare_group()`` in your source code.
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
