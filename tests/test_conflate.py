@@ -94,13 +94,13 @@ def conf2_file(tmpdir_factory):
     return p
 
 
-def test_load_conf_file(conf, conf1_file):
+def test_load_file(conf, conf1_file):
     with pytest.raises(FileNotFoundError):
-        conf.load_conf_file('somewhere/doesnot/exist')
+        conf.load_file('somewhere/doesnot/exist')
 
     assert conf.dummy.x == 3
     assert conf.dummy.y == 'some string'
-    conf.load_conf_file(conf1_file)
+    conf.load_file(conf1_file)
     assert conf.dummy.x == 5
     assert conf.dummy.y == 'other string'
 
@@ -111,13 +111,13 @@ def test_load_multiple_file(conf, conf1_file, conf2_file):
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'fish'
     assert conf.yummy.weight == 10
-    conf.load_conf_file(conf1_file)
+    conf.load_file(conf1_file)
     assert conf.dummy.x == 5
     assert conf.dummy.y == 'other string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'fish'
     assert conf.yummy.weight == 10
-    conf.load_conf_file(conf2_file)
+    conf.load_file(conf2_file)
     assert conf.dummy.x == 6
     assert conf.dummy.y == 'other string'
     assert conf.yummy.kind == 'seafood'
@@ -131,13 +131,13 @@ def test_load_multiple_file2(conf, conf1_file, conf2_file):
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'fish'
     assert conf.yummy.weight == 10
-    conf.load_conf_file(conf2_file)
+    conf.load_file(conf2_file)
     assert conf.dummy.x == 6
     assert conf.dummy.y == 'some string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'octopus'
     assert conf.yummy.weight == 10
-    conf.load_conf_file(conf1_file)
+    conf.load_file(conf1_file)
     assert conf.dummy.x == 5
     assert conf.dummy.y == 'other string'
     assert conf.yummy.kind == 'seafood'
@@ -147,7 +147,7 @@ def test_load_multiple_file2(conf, conf1_file, conf2_file):
 
 def test_load_conf_before_declare(conf1_file, conf2_file):
     conf = Conf()
-    conf.load_conf_file(conf1_file)
+    conf.load_file(conf1_file)
 
     with pytest.raises(UnknownConfError):
         conf.dummy.x
@@ -181,22 +181,22 @@ def test_load_conf_before_declare(conf1_file, conf2_file):
     assert conf.yummy.name == 'fish'
 
 
-def test_load_conf_module(conf, conf1_file):
+def test_load_module(conf, conf1_file):
 
     with pytest.raises(ImportError):
-        conf.load_conf_module('conf')
+        conf.load_module('conf')
 
     assert conf.dummy.x == 3
     assert conf.dummy.y == 'some string'
     sys.path.append(str(conf1_file.dirpath()))
-    conf.load_conf_module('conf1')
+    conf.load_module('conf1')
     assert conf.dummy.x == 5
     assert conf.dummy.y == 'other string'
 
 
 def test_declare_group_after_load_conf(conf1_file):
     conf = Conf()
-    conf.load_conf_file(conf1_file)
+    conf.load_file(conf1_file)
 
     with pytest.raises(UnknownConfError):
         conf.dummy.x

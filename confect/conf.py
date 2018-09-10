@@ -33,7 +33,7 @@ class Conf:
     Traceback (most recent call last):
         ...
     confect.error.FrozenConfPropError: Configuration properties are frozen.
-    Configuration properties can only be changed globally by loading configuration file through ``Conf.load_conf_file()`` and ``Conf.load_conf_module()``.
+    Configuration properties can only be changed globally by loading configuration file through ``Conf.load_file()`` and ``Conf.load_module()``.
     And it can be changed locally in the context created by `Conf.local_env()`.
 
     '''  # noqa
@@ -171,14 +171,14 @@ class Conf:
 
         return new_self
 
-    def load_conf_file(self, path):
+    def load_file(self, path):
         '''Load python configuration file through file path.
 
         All configuration groups and properties should be added through ``Conf.declare_group()`` in your source code.
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
-        >>> conf.load_conf_file('path/to/conf.py')  # doctest: +SKIP
+        >>> conf.load_file('path/to/conf.py')  # doctest: +SKIP
 
         Configuration file example
 
@@ -196,7 +196,7 @@ class Conf:
             with self._confect_c_ctx():
                 exec(path.open('r').read())
 
-    def load_conf_module(self, module_name):
+    def load_module(self, module_name):
         '''Load python configuration file through import.
         The module should be importable either through PYTHONPATH
         or was install as a package.
@@ -205,7 +205,7 @@ class Conf:
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
-        >>> conf.load_conf_file('path/to/conf.py')  # doctest: +SKIP
+        >>> conf.load_file('path/to/conf.py')  # doctest: +SKIP
 
         Configuration file example
 
@@ -274,7 +274,7 @@ class ConfGroup:
                 'Configuration properties are frozen.\n'
                 'Configuration properties can only be changed globally by '
                 'loading configuration file through '
-                '``Conf.load_conf_file()`` and ``Conf.load_conf_module()``.\n'
+                '``Conf.load_file()`` and ``Conf.load_module()``.\n'
                 'And it can be changed locally in the context '
                 'created by `Conf.local_env()`.'
             )
