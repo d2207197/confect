@@ -181,11 +181,12 @@ class Conf:
         >>> conf.load_conf_file('path/to/conf.py')  # doctest: +SKIP
 
         Configuration file example
-        ```
-        from confect import c
-        c.yammy.kind = 'seafood'
-        c.yammy.name = 'fish'
-        ```
+
+        .. code: python
+
+            from confect import c
+            c.yammy.kind = 'seafood'
+            c.yammy.name = 'fish'
         '''  # noqa
         from pathlib import Path
         if not isinstance(path, Path):
@@ -207,11 +208,13 @@ class Conf:
         >>> conf.load_conf_file('path/to/conf.py')  # doctest: +SKIP
 
         Configuration file example
-        ```
-        from confect import c
-        c.yammy.kind = 'seafood'
-        c.yammy.name = 'fish'
-        ```
+
+        .. code: python
+
+            from confect import c
+            c.yammy.kind = 'seafood'
+            c.yammy.name = 'fish'
+
         '''  # noqa
         with self._mutable_conf_ctx():
             with self._confect_c_ctx():

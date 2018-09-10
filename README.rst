@@ -8,7 +8,20 @@ Confect
 - Configuration file written in Python. This makes it possible to
   dynamically handle complicated logic in the configuration file, read
   other TOML/YMAL/JSON files or even environment variables in it.
-- Support only Python 3.6 and after
+
+Install
+-------
+
+``confect`` is a Python package hosted on PyPI and works only on Python 3.6 up.
+
+Just like other Python package, install it by `pip
+<https://pip.pypa.io/en/stable/>`_ into a  `virtualenv <https://hynek.me/articles/virtualenv-lives/>`_, or use `poetry <https://poetry.eustace.io/>`_ to
+automatically create and manage the virtualenv.
+
+.. code:: console
+
+   $ pip install confect
+
 
 Basic Usage
 -----------
@@ -49,7 +62,7 @@ name or subpackage name.
        yummy.weight = 10
 
    def print_yummy():
-       print(f'{yummy.kind} {yummy.name} {yummy.weight}')
+       print(f'{conf.yummy.kind} {conf.yummy.name} {conf.yummy.weight}')
 
    class Yummy:
        yummy_conf = conf.yummy
@@ -89,6 +102,7 @@ your_package.core import conf`` in other module.
    import sys
    from confect import Conf
    conf = Conf()
+
    if len(sys.argv) == 2:
        conf.load_conf_file(sys.argv[1])
    else:
@@ -131,7 +145,7 @@ through the import system of Python. Put your configuration file somewhere under
 your package or make ``PYTHONPATH`` pointing to the directory it resides. Then
 load it with ``Conf.load_conf_module(module_name)``.
 
-.. code:: bash
+.. code:: console
 
    $ edit my_conf.py
    $ export PYTHONPATH=.
@@ -165,5 +179,7 @@ block. It is usaful on writing test case or testing configuration properties in 
 To-Dos
 ======
 
-- Utility functions for loading dictionary into ConfDepotGroup
-- Override properties through command line arguments or environment variables
+- A function for loading dictionary into ``conflect.c``.
+- A function that loads command line arguments or environment variables and overrides configuration properties.
+- Copy-on-write mechenism in ``conf.local_env()`` for better performance and memory usage.
+- API reference page
