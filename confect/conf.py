@@ -297,7 +297,8 @@ class ConfGroup:
     def _update_from_conf_depot_group(self, conf_depot_group):
         with self._mutable_ctx():
             for conf_property, value in conf_depot_group._items():
-                setattr(self, conf_property, value)
+                if conf_property in self._defaults:
+                    setattr(self, conf_property, value)
 
     def __deepcopy__(self, memo):
         cls = type(self)

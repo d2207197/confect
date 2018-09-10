@@ -3,66 +3,75 @@ import textwrap
 
 import pytest
 
-from confect import (Conf, FrozenConfGroupError, FrozenConfPropError,
-                     UnknownConfError)
+from confect import (Conf, ConfGroupExistsError, FrozenConfGroupError,
+                     FrozenConfPropError, UnknownConfError)
 
 
 @pytest.fixture(scope='function')
-def dummy_conf():
-    the_conf = Conf()
-    the_conf.declare_group('dummy', x=3, y='some string')
-    return the_conf
+def conf():
+    conf = Conf()
+
+    conf.declare_group(
+        'dummy',
+        x=3,
+        y='some string')
+
+    with conf.declare_group('yummy') as g:
+        g.kind = 'seafood'
+        g.name = 'fish'
+        g.weight = 10
+    return conf
 
 
 def test_declare_group():
-    the_conf = Conf()
-    the_conf.declare_group('dummy', x=3, y='some string')
-    assert the_conf.dummy.x == 3
-    assert the_conf.dummy.y == 'some string'
+    conf = Conf()
+    conf.declare_group('dummy', x=3, y='some string')
+    assert conf.dummy.x == 3
+    assert conf.dummy.y == 'some string'
 
-    the_conf = Conf()
-    with the_conf.declare_group('dummy') as dummy:
+    conf = Conf()
+    with conf.declare_group('dummy') as dummy:
         dummy.x = 5
         dummy.y = 6
-    assert the_conf.dummy.x == 5
+    assert conf.dummy.x == 5
 
 
-def test_access_conf(dummy_conf):
-    assert dummy_conf.dummy.x == 3
-    assert dummy_conf.dummy.y == 'some string'
+def test_access_conf(conf):
+    assert conf.dummy.x == 3
+    assert conf.dummy.y == 'some string'
 
 
-def test_conf_frozen(dummy_conf):
+def test_conf_frozen(conf):
     with pytest.raises(FrozenConfPropError):
-        dummy_conf.dummy.x = 5
+        conf.dummy.x = 5
 
     with pytest.raises(FrozenConfGroupError):
-        dummy_conf.dummy = {'x': 5}
+        conf.dummy = {'x': 5}
 
 
-def test_unknown_conf(dummy_conf):
+def test_unknown_conf(conf):
     with pytest.raises(UnknownConfError):
-        dummy_conf.dummy.some_prop
+        conf.dummy.some_prop
 
     with pytest.raises(UnknownConfError):
-        dummy_conf.unknown_group
+        conf.unknown_group
 
 
-def test_mutable_env(dummy_conf):
-    assert dummy_conf.dummy.x == 3
-    with dummy_conf.local_env():
-        dummy_conf.dummy.x = 5
-        assert dummy_conf.dummy.x == 5
-    assert dummy_conf.dummy.x == 3
+def test_mutable_env(conf):
+    assert conf.dummy.x == 3
+    with conf.local_env():
+        conf.dummy.x = 5
+        assert conf.dummy.x == 5
+    assert conf.dummy.x == 3
 
-    with dummy_conf.local_env():
+    with conf.local_env():
         with pytest.raises(FrozenConfGroupError):
-            dummy_conf.dummy = {'y': 4}
+            conf.dummy = {'y': 4}
 
 
 @pytest.fixture(scope='session')
-def conf_file(tmpdir_factory):
-    p = tmpdir_factory.getbasetemp().join('conf.py')
+def conf1_file(tmpdir_factory):
+    p = tmpdir_factory.getbasetemp().join('conf1.py')
     p.write(textwrap.dedent('''
         from confect import c
         c.dummy.x = 5
@@ -72,33 +81,122 @@ def conf_file(tmpdir_factory):
     return p
 
 
-def test_load_conf_file(dummy_conf, conf_file):
+@pytest.fixture(scope='session')
+def conf2_file(tmpdir_factory):
+    p = tmpdir_factory.getbasetemp().join('conf2.py')
+    p.write(textwrap.dedent('''
+        from confect import c
+        c.dummy.x = 6
+
+        c.yummy.name = 'octopus'
+        '''))
+    print(p.read())
+    return p
+
+
+def test_load_conf_file(conf, conf1_file):
     with pytest.raises(FileNotFoundError):
-        dummy_conf.load_conf_file('somewhere/doesnot/exist')
+        conf.load_conf_file('somewhere/doesnot/exist')
 
-    assert dummy_conf.dummy.x == 3
-    assert dummy_conf.dummy.y == 'some string'
-    dummy_conf.load_conf_file(conf_file)
-    assert dummy_conf.dummy.x == 5
-    assert dummy_conf.dummy.y == 'other string'
+    assert conf.dummy.x == 3
+    assert conf.dummy.y == 'some string'
+    conf.load_conf_file(conf1_file)
+    assert conf.dummy.x == 5
+    assert conf.dummy.y == 'other string'
 
 
-def test_load_conf_module(dummy_conf, conf_file):
+def test_load_multiple_file(conf, conf1_file, conf2_file):
+    assert conf.dummy.x == 3
+    assert conf.dummy.y == 'some string'
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'fish'
+    assert conf.yummy.weight == 10
+    conf.load_conf_file(conf1_file)
+    assert conf.dummy.x == 5
+    assert conf.dummy.y == 'other string'
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'fish'
+    assert conf.yummy.weight == 10
+    conf.load_conf_file(conf2_file)
+    assert conf.dummy.x == 6
+    assert conf.dummy.y == 'other string'
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'octopus'
+    assert conf.yummy.weight == 10
+
+
+def test_load_multiple_file2(conf, conf1_file, conf2_file):
+    assert conf.dummy.x == 3
+    assert conf.dummy.y == 'some string'
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'fish'
+    assert conf.yummy.weight == 10
+    conf.load_conf_file(conf2_file)
+    assert conf.dummy.x == 6
+    assert conf.dummy.y == 'some string'
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'octopus'
+    assert conf.yummy.weight == 10
+    conf.load_conf_file(conf1_file)
+    assert conf.dummy.x == 5
+    assert conf.dummy.y == 'other string'
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'octopus'
+    assert conf.yummy.weight == 10
+
+
+def test_load_conf_before_declare(conf1_file, conf2_file):
+    conf = Conf()
+    conf.load_conf_file(conf1_file)
+
+    with pytest.raises(UnknownConfError):
+        conf.dummy.x
+
+    with pytest.raises(UnknownConfError):
+        conf.dummy.y
+
+    with pytest.raises(UnknownConfError):
+        conf.yummy.kind
+
+    with pytest.raises(UnknownConfError):
+        conf.yummy.other
+
+    with conf.declare_group('dummy') as g:
+        g.x = 3
+
+    assert conf.dummy.x == 5
+
+    with pytest.raises(UnknownConfError):
+        conf.dummy.y
+
+    with pytest.raises(ConfGroupExistsError):
+        with conf.declare_group('dummy') as g:
+            g.y = 'some string'
+
+    with conf.declare_group('yummy') as g:
+        g.kind = 'seafood'
+        g.name = 'fish'
+
+    assert conf.yummy.kind == 'seafood'
+    assert conf.yummy.name == 'fish'
+
+
+def test_load_conf_module(conf, conf1_file):
 
     with pytest.raises(ImportError):
-        dummy_conf.load_conf_module('conf')
+        conf.load_conf_module('conf')
 
-    assert dummy_conf.dummy.x == 3
-    assert dummy_conf.dummy.y == 'some string'
-    sys.path.append(str(conf_file.dirpath()))
-    dummy_conf.load_conf_module('conf')
-    assert dummy_conf.dummy.x == 5
-    assert dummy_conf.dummy.y == 'other string'
+    assert conf.dummy.x == 3
+    assert conf.dummy.y == 'some string'
+    sys.path.append(str(conf1_file.dirpath()))
+    conf.load_conf_module('conf1')
+    assert conf.dummy.x == 5
+    assert conf.dummy.y == 'other string'
 
 
-def test_declare_group_after_load_conf(conf_file):
+def test_declare_group_after_load_conf(conf1_file):
     conf = Conf()
-    conf.load_conf_file(conf_file)
+    conf.load_conf_file(conf1_file)
 
     with pytest.raises(UnknownConfError):
         conf.dummy.x

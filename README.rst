@@ -62,9 +62,11 @@ name or subpackage name.
        yummy.weight = 10
 
    def print_yummy():
+       # get some configuration through `conf.group_name.prop_name`
        print(f'{conf.yummy.kind} {conf.yummy.name} {conf.yummy.weight}')
 
    class Yummy:
+       # keep a configuration group in a variable
        yummy_conf = conf.yummy
 
        def get_yummy(self):
@@ -166,10 +168,14 @@ object temporarily mutable. All changes would be restored when it leaves the
 block. It is usaful on writing test case or testing configuration properties in Python REPL.
 
 >>> conf = Conf()
->>> conf.declare_group('dummy', prop1=3, prop2='some string') # declare group through keyword arguments
+>>> conf.declare_group(  # declare group through keyword arguments
+...      'dummy',
+...      prop1=3,
+...      prop2='some string')
+...
 >>> with conf.local_env():
-...     conf.dummy.prop1 = 5
-...     print(conf.dummy.prop1)
+...      conf.dummy.prop1 = 5
+...      print(conf.dummy.prop1)
 5
 ...     call_some_function_use_this_property()
 >>> print(conf.dummy.prop1)  # all configuration restored
