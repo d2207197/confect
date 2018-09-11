@@ -48,6 +48,9 @@ def test_conf_frozen(conf):
     with pytest.raises(FrozenConfGroupError):
         conf.dummy = {'x': 5}
 
+    with pytest.raises(FrozenConfGroupError):
+        conf.unknown = {'x': 5}
+
 
 def test_unknown_conf(conf):
     with pytest.raises(UnknownConfError):

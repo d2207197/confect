@@ -4,6 +4,7 @@ import weakref
 from contextlib import contextmanager
 from copy import deepcopy
 
+import confect.parser
 from confect.error import (ConfGroupExistsError, FrozenConfGroupError,
                            FrozenConfPropError, UnknownConfError)
 
@@ -77,10 +78,14 @@ class Conf:
                 f'configuration group {name!r} already exists')
 
         with self._mutable_conf_ctx():
-            group = ConfGroup(weakref.proxy(self), name, default_properties)
+            group = ConfGroup(self, name)
             self._conf_groups[name] = group
-            if not default_properties:
-                return group._default_setter()
+            default_setter_ctx = group._default_setter()
+            if default_properties:
+                with default_setter_ctx as default_setter:
+                    default_setter._update(default_properties)
+            else:
+                return default_setter_ctx
 
     def _backup(self):
         return deepcopy(self._conf_groups)
@@ -228,33 +233,70 @@ class ConfGroupDefaultSetter:
         self._conf_group = conf_group
 
     def __getattr__(self, property_name):
-        return getattr(self._conf_group, property_name)
+        return self[property_name]
 
     def __setattr__(self, property_name, value):
         if property_name in self.__slots__:
             object.__setattr__(self, property_name, value)
         else:
-            self._conf_group._defaults[property_name] = value
+            self[property_name] = value
+
+    def __getitem__(self, property_name):
+        return self._conf_group._defaults[property_name]
+
+    def __setitem__(self, property_name, default):
+        # self._conf_group._defaults[property_name] = value
+        self._conf_group._properties[property_name] = ConfProperty(
+            property_name, default)
+
+    def _update(self, default_properties):
+        for p, v in default_properties.items():
+            self[p] = v
+
+
+class Unset:
+    pass
+
+
+class ConfProperty:
+
+    __slots__ = ('name', '_value', 'default', 'parser')
+
+    def __init__(self, name, default, parser=None):
+        self.name = name
+        self.default = default
+        self._value = Unset
+        if parser is None:
+            parser = confect.parser.of_value(default)
+        self.parser = parser
+
+    @property
+    def value(self):
+        if self._value is not Unset:
+            return self._value
+
+        return self.default
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
 
 class ConfGroup:
-    __slots__ = '_conf', '_name', '_properties', '_is_mutable', '_defaults'
+    __slots__ = ('_conf', '_name', '_properties',
+                 '_is_mutable')
 
-    def __init__(self, conf: Conf, name: str, default_properties: dict):
-        self._conf = conf
+    def __init__(self, conf: Conf, name: str):
+        self._conf = weakref.proxy(conf)
         self._name = name
         self._is_mutable = False
-        self._defaults = deepcopy(default_properties)
         self._properties = {}
 
     def __getattr__(self, property_name):
         properties = _get_obj_attr(self, '_properties')
-        defaults = _get_obj_attr(self, '_defaults')
 
         if property_name in properties:
-            return properties[property_name]
-        elif property_name in defaults:
-            return defaults[property_name]
+            return properties[property_name].value
         else:
             raise UnknownConfError(
                 f'Unknown {property_name!r} property in '
@@ -264,11 +306,7 @@ class ConfGroup:
         if property_name in self.__slots__:
             object.__setattr__(self, property_name, value)
         elif self._is_mutable:
-            self._properties[property_name] = value
-        elif property_name not in self._defaults:
-            raise UnknownConfError(
-                f'Unknown {property_name!r} property in '
-                'configuration group {self.name!r}')
+            self._properties[property_name].value = value
         elif self._conf._is_frozen:
             raise FrozenConfPropError(
                 'Configuration properties are frozen.\n'
@@ -279,7 +317,7 @@ class ConfGroup:
                 'created by `Conf.local_env()`.'
             )
         else:
-            self._properties[property_name] = value
+            self._properties[property_name].value = value
 
     def __dir__(self):
         return self._properties.__dir__()
@@ -297,8 +335,8 @@ class ConfGroup:
     def _update_from_conf_depot_group(self, conf_depot_group):
         with self._mutable_ctx():
             for conf_property, value in conf_depot_group._items():
-                if conf_property in self._defaults:
-                    setattr(self, conf_property, value)
+                if conf_property in self._properties:
+                    self._properties[conf_property].value = value
 
     def __deepcopy__(self, memo):
         cls = type(self)
@@ -306,6 +344,5 @@ class ConfGroup:
         new_self._conf = self._conf  # Don't need to copy conf
         new_self._name = self._name
         new_self._is_mutable = self._is_mutable
-        new_self._defaults = deepcopy(self._defaults)
         new_self._properties = deepcopy(self._properties)
         return new_self
