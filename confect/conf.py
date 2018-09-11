@@ -161,7 +161,7 @@ class Conf:
             )
 
     def __dir__(self):
-        return self._conf_groups.__dir__()
+        return self._conf_groups.keys()
 
     def __deepcopy__(self, memo):
         cls = type(self)
@@ -225,6 +225,9 @@ class Conf:
             with self._confect_c_ctx():
                 importlib.import_module(module_name)
 
+    def __repr__(self):
+        return f'<{__name__}.{type(self).__qualname__} groups={list(self._conf_groups.keys())}>'
+
 
 class ConfGroupDefaultSetter:
     __slots__ = '_conf_group'
@@ -281,6 +284,9 @@ class ConfProperty:
     def value(self, value):
         self._value = value
 
+    def __repr__(self):
+        return f'<{__name__}.{type(self).__qualname__} {self.name} default={self.default!r} value={self._value!r} parser={self.parser}>'
+
 
 class ConfGroup:
     __slots__ = ('_conf', '_name', '_properties')
@@ -316,7 +322,7 @@ class ConfGroup:
             self._properties[property_name].value = value
 
     def __dir__(self):
-        return self._properties.__dir__()
+        return self._properties.keys()
 
     @contextmanager
     def _default_setter(self):
@@ -334,3 +340,6 @@ class ConfGroup:
         new_self._name = self._name
         new_self._properties = deepcopy(self._properties)
         return new_self
+
+    def __repr__(self):
+        return f'<{__name__}.{type(self).__qualname__} {self._name} properties={list(self._properties.keys())}>'
