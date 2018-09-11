@@ -77,7 +77,7 @@ class Conf:
             raise ConfGroupExistsError(
                 f'configuration group {name!r} already exists')
 
-        with self._mutable_conf_ctx():
+        with self._unfreeze_ctx():
             group = ConfGroup(self, name)
             self._conf_groups[name] = group
             default_setter_ctx = group._default_setter()
@@ -111,12 +111,12 @@ class Conf:
 
         '''  # noqa
         conf_groups_backup = self._backup()
-        with self._mutable_conf_ctx():
+        with self._unfreeze_ctx():
             yield
         self._restore(conf_groups_backup)
 
     @contextmanager
-    def _mutable_conf_ctx(self):
+    def _unfreeze_ctx(self):
         self._is_frozen = False
         yield
         self._is_frozen = True
@@ -197,7 +197,7 @@ class Conf:
         if not isinstance(path, Path):
             path = Path(path)
 
-        with self._mutable_conf_ctx():
+        with self._unfreeze_ctx():
             with self._confect_c_ctx():
                 exec(path.open('r').read())
 
@@ -221,7 +221,7 @@ class Conf:
             c.yammy.name = 'fish'
 
         '''  # noqa
-        with self._mutable_conf_ctx():
+        with self._unfreeze_ctx():
             with self._confect_c_ctx():
                 importlib.import_module(module_name)
 
@@ -283,13 +283,11 @@ class ConfProperty:
 
 
 class ConfGroup:
-    __slots__ = ('_conf', '_name', '_properties',
-                 '_is_mutable')
+    __slots__ = ('_conf', '_name', '_properties')
 
     def __init__(self, conf: Conf, name: str):
         self._conf = weakref.proxy(conf)
         self._name = name
-        self._is_mutable = False
         self._properties = {}
 
     def __getattr__(self, property_name):
@@ -305,8 +303,6 @@ class ConfGroup:
     def __setattr__(self, property_name, value):
         if property_name in self.__slots__:
             object.__setattr__(self, property_name, value)
-        elif self._is_mutable:
-            self._properties[property_name].value = value
         elif self._conf._is_frozen:
             raise FrozenConfPropError(
                 'Configuration properties are frozen.\n'
@@ -323,26 +319,18 @@ class ConfGroup:
         return self._properties.__dir__()
 
     @contextmanager
-    def _mutable_ctx(self):
-        self._is_mutable = True
-        yield self
-        self._is_mutable = False
-
-    @contextmanager
     def _default_setter(self):
         yield ConfGroupDefaultSetter(self)
 
     def _update_from_conf_depot_group(self, conf_depot_group):
-        with self._mutable_ctx():
-            for conf_property, value in conf_depot_group._items():
-                if conf_property in self._properties:
-                    self._properties[conf_property].value = value
+        for conf_property, value in conf_depot_group._items():
+            if conf_property in self._properties:
+                self._properties[conf_property].value = value
 
     def __deepcopy__(self, memo):
         cls = type(self)
         new_self = cls.__new__(cls)
         new_self._conf = self._conf  # Don't need to copy conf
         new_self._name = self._name
-        new_self._is_mutable = self._is_mutable
         new_self._properties = deepcopy(self._properties)
         return new_self
