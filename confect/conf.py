@@ -18,13 +18,15 @@ def _get_obj_attr(obj, attr):
 class Conf:
     '''Configuration
 
-    >>> conf = Conf()
+    >>> import confect
+    >>> conf = confect.new_conf()
 
-    Declare new configuration properties with ``Conf.declare_group(group_name)``
+    Declare new configuration properties with
+    ``Conf.declare_group(group_name)``
 
-    >>> with conf.declare_group('dummy') as dummy:
-    ...     dummy.opt1 = 3
-    ...     dummy.opt2 = 'some string'
+    >>> with conf.declare_group('dummy') as cg:
+    ...     cg.opt1 = 3
+    ...     cg.opt2 = 'some string'
     >>> conf.dummy.opt1
     3
 
@@ -46,6 +48,23 @@ class Conf:
                  )
 
     def __init__(self):
+        '''Create a new confect.Conf object
+
+        >>> import confect
+        >>> conf = confect.new_conf()
+
+        Declare new configuration properties with
+        ``Conf.declare_group(group_name)``
+
+        >>> with conf.declare_group('dummy') as cg:
+        ...     cg.opt1 = 3
+        ...     cg.opt2 = 'some string'
+
+        >>> conf.dummy.opt1
+        3
+
+        '''
+
         from confect.conf_depot import ConfDepot
         self._is_setting_imported = False
         self._is_frozen = True
@@ -226,10 +245,11 @@ class Conf:
                 importlib.import_module(module_name)
 
     def __repr__(self):
-        return f'<{__name__}.{type(self).__qualname__} groups={list(self._conf_groups.keys())}>'
+        return (f'<{__name__}.{type(self).__qualname__} '
+                f'groups={list(self._conf_groups.keys())}>')
 
 
-class ConfGroupDefaultSetter:
+class ConfGroupPropertySetter:
     __slots__ = '_conf_group'
 
     def __init__(self, conf_group):
@@ -245,37 +265,88 @@ class ConfGroupDefaultSetter:
             self[property_name] = value
 
     def __getitem__(self, property_name):
-        return self._conf_group._defaults[property_name]
+        return self._conf_group._properties.setdefault(
+            property_name,
+            ConfProperty())
 
     def __setitem__(self, property_name, default):
-        # self._conf_group._defaults[property_name] = value
-        self._conf_group._properties[property_name] = ConfProperty(
-            property_name, default)
+        if isinstance(default, ConfProperty):
+            conf_prop = default
+        else:
+            conf_prop = ConfProperty(default)
+
+        self._conf_group._properties[property_name] = conf_prop
 
     def _update(self, default_properties):
         for p, v in default_properties.items():
             self[p] = v
 
 
-class Unset:
-    pass
+class Undefined:
+    '''Undefined value'''
+    __instance = None
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = object.__new__(cls)
+
+        return cls.__instance
+
+    def __bool__(self):
+        return False
+
+    def __repr__(self):
+        return f'<{__name__}.{type(self).__qualname__}>'
+
+    def __deepcopy__(self, memo):
+        return self.__instance
+
+
+Undefined = Undefined()
 
 
 class ConfProperty:
 
-    __slots__ = ('name', '_value', 'default', 'parser')
+    __slots__ = ('_value', 'default', 'parser')
 
-    def __init__(self, name, default, parser=None):
-        self.name = name
+    def __init__(self, default=Undefined, parser=None):
+        '''Configuration Property
+
+        >>> import confect
+        >>> import datetime as dt
+        >>> conf = confect.new_conf()
+
+        >>> from enum import Enum
+        >>> class Color(Enum):
+        ...     RED = 1
+        ...     GREEN = 2
+        ...     BLUE = 3
+
+        >>> with conf.declare_group('dummy') as cg:
+        ...     cg.a_number = 3
+        ...     cg.some_string = 'some string'
+        ...     cg.color = confect.property(
+        ...          default=Color.RED,
+        ...          parser=lambda s: getattr(Color, s.upper()))
+
+        Paramaters
+        ----------
+        default : ValueType
+            default value
+        parser : Callable[[str], ValueType]
+            parser for reading environment variable or command line
+            argument into property value
+
+        '''
         self.default = default
-        self._value = Unset
+        self._value = Undefined
         if parser is None:
             parser = confect.parser.of_value(default)
         self.parser = parser
 
     @property
     def value(self):
-        if self._value is not Unset:
+        if self._value is not Undefined:
             return self._value
 
         return self.default
@@ -285,7 +356,9 @@ class ConfProperty:
         self._value = value
 
     def __repr__(self):
-        return f'<{__name__}.{type(self).__qualname__} {self.name} default={self.default!r} value={self._value!r} parser={self.parser}>'
+        return (f'<{__name__}.{type(self).__qualname__} '
+                f'default={self.default!r} value={self._value!r} '
+                f'parser={self.parser}>')
 
 
 class ConfGroup:
@@ -326,7 +399,7 @@ class ConfGroup:
 
     @contextmanager
     def _default_setter(self):
-        yield ConfGroupDefaultSetter(self)
+        yield ConfGroupPropertySetter(self)
 
     def _update_from_conf_depot_group(self, conf_depot_group):
         for conf_property, value in conf_depot_group._items():
@@ -342,4 +415,5 @@ class ConfGroup:
         return new_self
 
     def __repr__(self):
-        return f'<{__name__}.{type(self).__qualname__} {self._name} properties={list(self._properties.keys())}>'
+        return (f'<{__name__}.{type(self).__qualname__} '
+                f'{self._name} properties={list(self._properties.keys())}>')

@@ -24,11 +24,13 @@ class register():
 
     >>> from decimal import Decimal
 
-    >>> @register(Decimal)
+    >>> @parser.register(Decimal)
     ... def decimal_parser(s):
     ...     return Decimal(s)
 
     >>> type_parser(Decimal, Decimal)
+
+    >>> @register
     '''
 
     def __init__(self, type_, parser=None):
