@@ -12,7 +12,7 @@ TYPE_PARSER_MAP = OrderedDict([
     (float, lambda s: float(s)),
     (bytes, lambda s: s.encode()),
     (dt.datetime, lambda s: pdl.parse(s)),
-    (dt.date, lambda s: dt.datetime.strptime('%Y-%m-%d')),
+    (dt.date, lambda s: pdl.parse(s).date()),
     (tuple, lambda s: tuple(json.load(s))),
     (dict, lambda s: json.loads(s)),
     (list, lambda s: json.loads(s)),

@@ -44,12 +44,12 @@ def test_unknown_conf(conf):
 
 def test_mutable_env(conf):
     assert conf.dummy.x == 3
-    with conf.local_env():
+    with conf.mutate_locally():
         conf.dummy.x = 5
         assert conf.dummy.x == 5
     assert conf.dummy.x == 3
 
-    with conf.local_env():
+    with conf.mutate_locally():
         with pytest.raises(FrozenConfGroupError):
             conf.dummy = {'y': 4}
 

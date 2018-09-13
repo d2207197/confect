@@ -13,10 +13,6 @@ from confect.error import (ConfGroupExistsError, FrozenConfGroupError,
 logger = logging.getLogger(__name__)
 
 
-def _get_obj_attr(obj, attr):
-    return object.__getattribute__(obj, attr)
-
-
 class Undefined:
     '''Undefined value'''
     __instance = None
@@ -118,7 +114,7 @@ class Conf:
         ...
     confect.error.FrozenConfPropError: Configuration properties are frozen.
     Configuration properties can only be changed globally by loading configuration file through ``Conf.load_file()`` and ``Conf.load_module()``.
-    And it can be changed locally in the context created by `Conf.local_env()`.
+    And it can be changed locally in the context created by `Conf.mutate_locally()`.
 
     '''  # noqa
     __slots__ = ('_is_setting_imported',
@@ -177,7 +173,7 @@ class Conf:
             raise ConfGroupExistsError(
                 f'configuration group {name!r} already exists')
 
-        with self._unfreeze_ctx():
+        with self.mutate_globally():
             group = ConfGroup(self, name)
             self._conf_groups[name] = group
             default_setter_ctx = group._default_setter()
@@ -194,8 +190,9 @@ class Conf:
         self._conf_groups = conf_groups
 
     @contextmanager
-    def local_env(self):
+    def mutate_locally(self):
         '''Return a context manager that makes this Conf mutable temporarily.
+
         All configuration properties will be restored upon completion of the block.
 
         >>> conf = Conf()
@@ -203,7 +200,7 @@ class Conf:
         ...     yummy.kind='seafood'
         ...     yummy.name='fish'
         ...
-        >>> with conf.local_env():
+        >>> with conf.mutate_locally():
         ...     conf.yummy.name = 'octopus'
         ...     print(conf.yummy.name)
         ...
@@ -213,12 +210,12 @@ class Conf:
 
         '''  # noqa
         conf_groups_backup = self._backup()
-        with self._unfreeze_ctx():
+        with self.mutate_globally():
             yield
         self._restore(conf_groups_backup)
 
     @contextmanager
-    def _unfreeze_ctx(self):
+    def mutate_globally(self):
         self._is_frozen = False
         yield
         self._is_frozen = True
@@ -300,7 +297,7 @@ class Conf:
         if not isinstance(path, Path):
             path = Path(path)
 
-        with self._unfreeze_ctx():
+        with self.mutate_globally():
             with self._confect_c_ctx():
                 exec(path.open('r').read())
 
@@ -326,19 +323,40 @@ class Conf:
             c.yammy.name = 'fish'
 
         '''  # noqa
-        with self._unfreeze_ctx():
+        with self.mutate_globally():
             with self._confect_c_ctx():
                 importlib.import_module(module_name)
 
     def load_envvars(self, prefix):
-        prefix = prefix.upper() + '__'
-        with self._unfreeze_ctx():
-            for name, value in os.environ:
+        '''Load python configuration from environment variables
+
+        This function automatically searches environment variable in
+        ``<prefix>__<group>__<prop>`` format. Be aware of that all of these
+        three identifier are case sensitive. If you have a configuration
+        property ``conf.cache.expire_time`` and you call
+        ``Conf.load_envvars('proj_X')``. It will set that ``expire_time``
+        property to the parsed value of ``proj_X__cache__expire_time``
+        environment variable.
+
+        >> conf = confect.new_conf()
+        >> conf.load_envvars('proj_X')  # doctest: +SKIP
+
+        Parameters
+        ----------
+        prefix : str
+            prefix of environment variables
+
+        '''
+        prefix = prefix + '__'
+        with self.mutate_globally():
+            for name, value in os.environ.items():
                 if name.startswith(prefix):
-                    _, group, prop = value.split('__')
-                    group = group.lower()
-                    prop = prop.lower()
-                    self[group][prop] = value
+                    _, group, prop = name.split('__')
+                    value = self.parse_prop(group, prop, value)
+                    self._conf_depot[group][prop] = value
+
+    def parse_prop(self, group, prop, string):
+        return self[group].parse_prop(prop, string)
 
     @fnt.wraps(ConfProperty.__init__)
     def prop(self, *args, **kwargs):
@@ -415,7 +433,7 @@ class ConfGroup:
                 'loading configuration file through '
                 '``Conf.load_file()`` and ``Conf.load_module()``.\n'
                 'And it can be changed locally in the context '
-                'created by `Conf.local_env()`.'
+                'created by `Conf.mutate_locally()`.'
             )
         else:
             self._properties[property_name].value = value
@@ -439,6 +457,9 @@ class ConfGroup:
         new_self._name = self._name
         new_self._properties = deepcopy(self._properties)
         return new_self
+
+    def parse_prop(self, prop, string):
+        return self._properties[prop].parser(string)
 
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '

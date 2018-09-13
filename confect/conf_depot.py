@@ -1,7 +1,5 @@
 
-
-def _get_obj_attr(obj, attr):
-    return object.__getattribute__(obj, attr)
+from confect.error import UnknownConfError
 
 
 class ConfDepot:
@@ -14,17 +12,14 @@ class ConfDepot:
         del self._depot_groups[group_name]
 
     def __getitem__(self, group_name):
+        if group_name not in self._depot_groups:
+            conf_depot_group = ConfDepotGroup()
+            self._depot_groups[group_name] = conf_depot_group
+
         return self._depot_groups[group_name]
 
     def __getattr__(self, group_name):
-        depot_groups = _get_obj_attr(self, '_depot_groups')
-
-        if group_name not in depot_groups:
-            conf_depot_group = ConfDepotGroup()
-            depot_groups[group_name] = conf_depot_group
-            return conf_depot_group
-
-        return depot_groups[group_name]
+        return self[group_name]
 
     def __setattr__(self, name, value):
         if name in self.__slots__:
@@ -41,6 +36,9 @@ class ConfDepot:
     def __contains__(self, group_name):
         return group_name in self._depot_groups
 
+    def __dir__(self):
+        return self._depot_groups.keys()
+
 
 class ConfDepotGroup:
     __slots__ = '_depot_properties'
@@ -52,23 +50,24 @@ class ConfDepotGroup:
         return self._depot_properties.items()
 
     def __getitem__(self, property_name):
-        return self._depot_properties[property_name]
-
-    def __setitem__(self, property_name):
-        return self._depot_properties[property_name]
-
-    def __getattr__(self, property_name):
-        depot_properties = _get_obj_attr(self, '_depot_properties')
-
-        if property_name not in depot_properties:
-            raise AttributeError(
+        if property_name not in self._depot_properties:
+            raise UnknownConfError(
                 f'ConfDepotGroup object has no property {property_name!r}'
             )
 
-        return depot_properties[property_name]
+        return self._depot_properties[property_name]
+
+    def __setitem__(self, property_name, value):
+        self._depot_properties[property_name] = value
+
+    def __getattr__(self, property_name):
+        return self[property_name]
 
     def __setattr__(self, name, value):
         if name in self.__slots__:
             object.__setattr__(self, name, value)
         else:
-            self._depot_properties[name] = value
+            self[name] = value
+
+    def __dir__(self):
+        return self._depot_properties.keys()
