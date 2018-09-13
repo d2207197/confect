@@ -1,5 +1,7 @@
+import functools as fnt
 import importlib
 import logging
+import os
 import weakref
 from contextlib import contextmanager
 from copy import deepcopy
@@ -13,6 +15,85 @@ logger = logging.getLogger(__name__)
 
 def _get_obj_attr(obj, attr):
     return object.__getattribute__(obj, attr)
+
+
+class Undefined:
+    '''Undefined value'''
+    __instance = None
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = object.__new__(cls)
+
+        return cls.__instance
+
+    def __bool__(self):
+        return False
+
+    def __repr__(self):
+        return f'<{__name__}.{type(self).__qualname__}>'
+
+    def __deepcopy__(self, memo):
+        return self.__instance
+
+
+Undefined = Undefined()
+
+
+class ConfProperty:
+
+    __slots__ = ('_value', 'default', 'parser')
+
+    def __init__(self, default=Undefined, parser=None):
+        '''Create configuration property with details
+
+        >>> import confect
+        >>> import datetime as dt
+        >>> conf = confect.new_conf()
+
+        >>> from enum import Enum
+        >>> class Color(Enum):
+        ...     RED = 1
+        ...     GREEN = 2
+        ...     BLUE = 3
+
+        >>> with conf.declare_group('dummy') as cg:
+        ...     cg.a_number = 3
+        ...     cg.some_string = 'some string'
+        ...     cg.color = conf.prop(
+        ...          default=Color.RED,
+        ...          parser=lambda s: getattr(Color, s.upper()))
+
+        Paramaters
+        ----------
+        default : ValueType
+            default value
+        parser : Callable[[str], ValueType]
+            parser for reading environment variable or command line
+            argument into property value
+
+        '''
+        self.default = default
+        self._value = Undefined
+        if parser is None:
+            parser = confect.parser.of_value(default)
+        self.parser = parser
+
+    @property
+    def value(self):
+        if self._value is not Undefined:
+            return self._value
+
+        return self.default
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    def __repr__(self):
+        return (f'<{__name__}.{type(self).__qualname__} '
+                f'default={self.default!r} value={self._value!r} '
+                f'parser={self.parser}>')
 
 
 class Conf:
@@ -121,9 +202,11 @@ class Conf:
         >>> with conf.declare_group('yummy') as yummy:
         ...     yummy.kind='seafood'
         ...     yummy.name='fish'
+        ...
         >>> with conf.local_env():
         ...     conf.yummy.name = 'octopus'
         ...     print(conf.yummy.name)
+        ...
         octopus
         >>> print(conf.yummy.name)
         fish
@@ -151,33 +234,34 @@ class Conf:
         return group_name in self._conf_groups
 
     def __getitem__(self, group_name):
-        return getattr(self, group_name)
-
-    def __getattr__(self, group_name):
-        conf_groups = _get_obj_attr(self, '_conf_groups')
-        conf_depot = _get_obj_attr(self, '_conf_depot')
-        if group_name not in conf_groups:
+        if group_name not in self._conf_groups:
             raise UnknownConfError(
                 f'Unknown configuration group {group_name!r}')
 
-        conf_group = conf_groups[group_name]
+        conf_group = self._conf_groups[group_name]
 
-        if group_name in conf_depot:
-            conf_depot_group = conf_depot[group_name]
+        if group_name in self._conf_depot:
+            conf_depot_group = self._conf_depot[group_name]
             conf_group._update_from_conf_depot_group(conf_depot_group)
-            del conf_depot[group_name]
+            del self._conf_depot[group_name]
 
         return conf_group
+
+    def __getattr__(self, group_name):
+        return self[group_name]
+
+    def __setitem__(self, group_name, group):
+        raise FrozenConfGroupError(
+            'Configuration groups are frozen. '
+            'Call `confect.declare_group()` for '
+            'registering new configuration group.'
+        )
 
     def __setattr__(self, name, value):
         if name in self.__slots__:
             object.__setattr__(self, name, value)
         else:
-            raise FrozenConfGroupError(
-                'Configuration groups are frozen. '
-                'Call `confect.declare_group()` for '
-                'registering new configuration group.'
-            )
+            self[name] = value
 
     def __dir__(self):
         return self._conf_groups.keys()
@@ -222,6 +306,7 @@ class Conf:
 
     def load_module(self, module_name):
         '''Load python configuration file through import.
+
         The module should be importable either through PYTHONPATH
         or was install as a package.
 
@@ -229,13 +314,14 @@ class Conf:
         Otherwise, it won't be accessable even if it is in configuration file.
 
         >>> conf = Conf()
-        >>> conf.load_file('path/to/conf.py')  # doctest: +SKIP
+        >>> conf.load_model('some.module.name')  # doctest: +SKIP
 
         Configuration file example
 
         .. code: python
 
             from confect import c
+
             c.yammy.kind = 'seafood'
             c.yammy.name = 'fish'
 
@@ -243,6 +329,20 @@ class Conf:
         with self._unfreeze_ctx():
             with self._confect_c_ctx():
                 importlib.import_module(module_name)
+
+    def load_envvars(self, prefix):
+        prefix = prefix.upper() + '__'
+        with self._unfreeze_ctx():
+            for name, value in os.environ:
+                if name.startswith(prefix):
+                    _, group, prop = value.split('__')
+                    group = group.lower()
+                    prop = prop.lower()
+                    self[group][prop] = value
+
+    @fnt.wraps(ConfProperty.__init__)
+    def prop(self, *args, **kwargs):
+        return ConfProperty(*args, **kwargs)
 
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '
@@ -282,85 +382,6 @@ class ConfGroupPropertySetter:
             self[p] = v
 
 
-class Undefined:
-    '''Undefined value'''
-    __instance = None
-
-    def __new__(cls):
-        if cls.__instance is None:
-            cls.__instance = object.__new__(cls)
-
-        return cls.__instance
-
-    def __bool__(self):
-        return False
-
-    def __repr__(self):
-        return f'<{__name__}.{type(self).__qualname__}>'
-
-    def __deepcopy__(self, memo):
-        return self.__instance
-
-
-Undefined = Undefined()
-
-
-class ConfProperty:
-
-    __slots__ = ('_value', 'default', 'parser')
-
-    def __init__(self, default=Undefined, parser=None):
-        '''Configuration Property
-
-        >>> import confect
-        >>> import datetime as dt
-        >>> conf = confect.new_conf()
-
-        >>> from enum import Enum
-        >>> class Color(Enum):
-        ...     RED = 1
-        ...     GREEN = 2
-        ...     BLUE = 3
-
-        >>> with conf.declare_group('dummy') as cg:
-        ...     cg.a_number = 3
-        ...     cg.some_string = 'some string'
-        ...     cg.color = confect.property(
-        ...          default=Color.RED,
-        ...          parser=lambda s: getattr(Color, s.upper()))
-
-        Paramaters
-        ----------
-        default : ValueType
-            default value
-        parser : Callable[[str], ValueType]
-            parser for reading environment variable or command line
-            argument into property value
-
-        '''
-        self.default = default
-        self._value = Undefined
-        if parser is None:
-            parser = confect.parser.of_value(default)
-        self.parser = parser
-
-    @property
-    def value(self):
-        if self._value is not Undefined:
-            return self._value
-
-        return self.default
-
-    @value.setter
-    def value(self, value):
-        self._value = value
-
-    def __repr__(self):
-        return (f'<{__name__}.{type(self).__qualname__} '
-                f'default={self.default!r} value={self._value!r} '
-                f'parser={self.parser}>')
-
-
 class ConfGroup:
     __slots__ = ('_conf', '_name', '_properties')
 
@@ -370,19 +391,24 @@ class ConfGroup:
         self._properties = {}
 
     def __getattr__(self, property_name):
-        properties = _get_obj_attr(self, '_properties')
-
-        if property_name in properties:
-            return properties[property_name].value
-        else:
-            raise UnknownConfError(
-                f'Unknown {property_name!r} property in '
-                f'configuration group {self._name!r}')
+        return self[property_name]
 
     def __setattr__(self, property_name, value):
         if property_name in self.__slots__:
             object.__setattr__(self, property_name, value)
-        elif self._conf._is_frozen:
+        else:
+            self[property_name] = value
+
+    def __getitem__(self, property_name):
+        if property_name not in self._properties:
+            raise UnknownConfError(
+                f'Unknown {property_name!r} property in '
+                f'configuration group {self._name!r}')
+
+        return self._properties[property_name].value
+
+    def __setitem__(self, property_name, value):
+        if self._conf._is_frozen:
             raise FrozenConfPropError(
                 'Configuration properties are frozen.\n'
                 'Configuration properties can only be changed globally by '

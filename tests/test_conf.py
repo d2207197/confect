@@ -52,3 +52,16 @@ def test_mutable_env(conf):
     with conf.local_env():
         with pytest.raises(FrozenConfGroupError):
             conf.dummy = {'y': 4}
+
+
+def test_getitem(conf):
+    assert conf.dummy.x == 3
+    assert conf['dummy']['x'] == 3
+
+
+def test_setitem(conf):
+    with pytest.raises(FrozenConfPropError):
+        conf['dummy']['x'] = 5
+
+    with pytest.raises(FrozenConfGroupError):
+        conf['dummy'] = {'x': 5}

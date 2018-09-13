@@ -44,7 +44,7 @@ def test_declare_custom_parser1():
     conf = confect.new_conf()
 
     with conf.declare_group('yo') as g:
-        g.some_prop = confect.property(
+        g.some_prop = conf.prop(
             dt.timedelta(days=3), simple_timedelta_parser)
 
 
@@ -62,7 +62,7 @@ def test_declare_custom_parser2():
         cg.a_number = 3
         cg.some_string = 'some string'
 
-        cg.color = confect.property(
+        cg.color = conf.prop(
             default=Color.RED,
             parser=lambda s: getattr(Color, s.upper())
         )
