@@ -160,10 +160,38 @@ load it with ``Conf.load_conf_module(module_name)``.
    conf = Conf()
    conf.load_conf_module('my_conf')
 
-Local Environment
+Load Environment Variables
+---------------------------
+
+``Conf.load_envvars(prefix: str)`` automatically searches environment variables
+in ``<prefix>__<group>__<prop>`` format. All of these three identifier are case
+sensitive. If you have a configuration property ``conf.cache.expire_time`` and
+you call ``Conf.load_envvars('proj_X')``. It will set that ``expire_time``
+property to the parsed value of ``proj_X__cache__expire_time`` environment
+variable.
+
+>>> import os
+>>> os.environ['proj_X.cache.expire'] = '3600'
+
+>>> conf = confect.new_conf()
+>>> conf.load_envvars('proj_X')  # doctest: +SKIP
+
+Confect includes predefined parsers of these primitive types.
+
+- ``str``
+- ``int``
+- ``float``
+- ``bytes``
+- ``datetime.datetime``
+- ``datetime.date``
+- ``tuple``
+- ``dict``
+- ``list``
+
+Mutable Environment
 -----------------
 
-``Conf.local_env()`` context manager creates an environment that makes ``Conf``
+``Conf.mutate_locally()`` context manager creates an environment that makes ``Conf``
 object temporarily mutable. All changes would be restored when it leaves the
 block. It is usaful on writing test case or testing configuration properties in Python REPL.
 
@@ -173,7 +201,7 @@ block. It is usaful on writing test case or testing configuration properties in 
 ...      prop1=3,
 ...      prop2='some string')
 ...
->>> with conf.local_env():
+>>> with conf.mutate_locally():
 ...      conf.dummy.prop1 = 5
 ...      print(conf.dummy.prop1)
 5
@@ -186,6 +214,6 @@ To-Dos
 ======
 
 - A function for loading dictionary into ``conflect.c``.
-- A function that loads command line arguments or environment variables and overrides configuration properties.
-- Copy-on-write mechenism in ``conf.local_env()`` for better performance and memory usage.
+- A function that loads command line arguments and overrides configuration properties.
+- Copy-on-write mechenism in ``conf.mutate_locally()`` for better performance and memory usage.
 - API reference page
