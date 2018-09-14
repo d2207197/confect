@@ -119,10 +119,11 @@ Use ``Conf.load_conf_file(path)`` or ``Conf.load_conf_module(module_name)`` to
 load configuration files, or use ``Conf.load_envvars(prefix)`` to load
 configuration from environment variable. No matter the loading statement is
 located before or after groups/properties declaration, property values in
-configuration file always override default values. It's possible to load configuration multiple times, the latter one would replace values from former loading.
+configuration file always override default values. It's possible to load 
+configuration multiple times, the latter one would replace values from former loading.
 
-Be aware, you should access your configuration properties after load
-configuration files. If not, you might get wrong/default value. Therefore, we
+Be aware, *you should access your configuration properties after load
+configuration files.* If not, you might get wrong/default value. Therefore, we
 usually load configuration file right after the statement of creating the
 ``Conf`` object.
 
@@ -183,8 +184,8 @@ programmable and unrestricted. It is possible and easy to
   configuration file.
 
 It's not necessary and is unusual to have all configuration properties in the
-configuration file. Put only those configuration properties and corresponding
-values that you want to override to the configuration file.
+configuration file. *Put only those configuration properties and corresponding
+values that you want to override to the configuration file.*
 
 In configuration file, import ``confect.c`` object and set all properties on it
 as if ``c`` is the conf object. Here's an example of configuration file.
