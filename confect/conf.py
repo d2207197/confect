@@ -46,7 +46,7 @@ class ConfProperty:
 
         >>> import confect
         >>> import datetime as dt
-        >>> conf = confect.new_conf()
+        >>> conf = confect.Conf()
 
         >>> from enum import Enum
         >>> class Color(Enum):
@@ -97,7 +97,7 @@ class Conf:
     '''Configuration
 
     >>> import confect
-    >>> conf = confect.new_conf()
+    >>> conf = confect.Conf()
 
     Declare new configuration properties with
     ``Conf.declare_group(group_name)``
@@ -129,7 +129,7 @@ class Conf:
         '''Create a new confect.Conf object
 
         >>> import confect
-        >>> conf = confect.new_conf()
+        >>> conf = confect.Conf()
 
         Declare new configuration properties with
         ``Conf.declare_group(group_name)``
@@ -339,7 +339,7 @@ class Conf:
         property to the parsed value of ``proj_X__cache__expire_time``
         environment variable.
 
-        >> conf = confect.new_conf()
+        >> conf = confect.Conf()
         >> conf.load_envvars('proj_X')  # doctest: +SKIP
 
         Parameters

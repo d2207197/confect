@@ -22,15 +22,15 @@ TYPE_PARSER_MAP = OrderedDict([
 class register():
     '''A function or decorator to register new parsers for some type
 
-    >>> from decimal import Decimal
+    # >>> from decimal import Decimal
 
-    >>> @parser.register(Decimal)
-    ... def decimal_parser(s):
-    ...     return Decimal(s)
+    # >>> @parser.register(Decimal)
+    # ... def decimal_parser(s):
+    # ...     return Decimal(s)
 
-    >>> type_parser(Decimal, Decimal)
+    # >>> type_parser(Decimal, Decimal)
 
-    >>> @register
+    # >>> @register
     '''
 
     def __init__(self, type_, parser=None):
