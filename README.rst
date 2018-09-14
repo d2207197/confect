@@ -10,6 +10,7 @@ Confect
 - Loading configuration file from file path, module importing or even from
   environment variable.
 - Configuration files in Python. This makes it possible to
+
   + have complex type objects as configuration values, like Decimal, timedelta
     or any class instance
   + dynamically handle complicated logic, you can use conditional statements
