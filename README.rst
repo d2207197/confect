@@ -233,7 +233,7 @@ property to the parsed value of ``proj_X__cache__expire_time`` environment
 variable.
 
 >>> import os
->>> os.environ['proj_X.cache.expire'] = '3600'
+>>> os.environ['proj_X__cache__expire'] = '3600'
 
 >>> conf = confect.Conf()
 >>> conf.load_envvars('proj_X')  # doctest: +SKIP
