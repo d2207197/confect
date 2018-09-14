@@ -3,75 +3,100 @@ Confect
 
 ``confect`` is a Python configuration library with the following features.
 
-- A unified and pleasant configuration definition and accessing interface
-- Immutable conf object for reducing the possibility of making errors
-- Configuration file written in Python. This makes it possible to
-  dynamically handle complicated logic in the configuration file, read
-  other TOML/YMAL/JSON files or even environment variables in it.
+- A readable and pleasant configuration definition and accessing interface
+- Predefined configuration and immutable conf object for reducing the
+  possibility of making errors. You shouldn't modify configuration too
+  dynamically as if they are global variables.
+- Loading configuration file from file path, module importing or even from
+  environment variable.
+- Configuration files in Python. This makes it possible to
+  + have complex type objects as configuration values, like Decimal, timedelta
+    or any class instance
+  + dynamically handle complicated logic, you can use conditional statements
+    like ``if`` in it.
+  + read other TOML/YMAL/JSON files or even environment variables in the
+    configuration file.
 
 Install
 -------
 
-``confect`` is a Python package hosted on PyPI and works only on Python 3.6 up.
+``confect`` is a Python package hosted on PyPI and works only with Python 3.6 up.
 
 Just like other Python package, install it by `pip
 <https://pip.pypa.io/en/stable/>`_ into a  `virtualenv <https://hynek.me/articles/virtualenv-lives/>`_, or use `poetry <https://poetry.eustace.io/>`_ to
-automatically create and manage the virtualenv.
+manage project dependencies and virtualenv.
 
 .. code:: console
 
    $ pip install confect
 
 
-Basic Usage
------------
+Initialize Conf object
+---------------
 
 Calling ``conf = confect.Conf()`` creates a new configuration manager object.
-All configuration properties reside in it and are accessable through get
-attribute like this ``conf.group_name.prop_name``. It is possible to create
-multiple ``Conf`` objects, but normally we don't need it. In most cases,
-initialize only one ``Conf`` object in some module, then import and use it
-anywhere in your application.
-
-Put following lines in your application package. For example, in
-``your_package.__init__.py`` or ``your_package.core.py``.
+Put following lines in your application package. For example, suppose ``proj_X``
+is your top-level package name. Put the following lines into
+``proj_X.__init__.py`` or ``proj_X.core.py``.
 
 .. code:: python
 
-   from confect import conf
-   conf = Conf()
+   import confect
+   conf = confect.Conf()
+
+   # load configuration files through importing
+   try:
+       conf.load_module('proj_X_conf')
+   except ImportError:
+       pass
+
+   # overrides configuration with environment variables
+   conf.load_envvars('proj_X')
+
+It is possible to create multiple ``Conf`` objects, but normally we don't need
+it. In most cases, initialize only one ``Conf`` object in one module in your
+package, then import and use it anywhere in your application.
+
+Declare Configuration Groups and Properties
+-------------------------------------------
 
 Configuration properties should be declared before using it. Use
 ``Conf.declare_group(group_name)`` context manager to declare a configuration
-group and all properties under it. It's nessasery to provide a default value for
-each properties. Default values can be any type as long as the value can be
-deepcopy. Group names shuold be valid attribute names.
+group and all properties under it at the same time. It's nessasery to provide
+default values for each properties. Default values can be any type. The group
+name should be valid attribute names.
 
 Put your configuration group declaration code in modules where you need those
 properties. And make sure that the declaration is before all the lines that
 access these properties. Normally, the group name is your class name, module
 name or subpackage name.
 
+Suppose that there's a ``proj_X/api.py`` module.
 
 .. code:: python
 
-   from your_package import conf
-   with conf.declare_group('yummy') as yummy:
-       yummy.kind = 'seafood'
-       yummy.name = 'fish'
-       yummy.weight = 10
+   from proj_X.core import conf
 
-   def print_yummy():
-       # get some configuration through `conf.group_name.prop_name`
-       print(f'{conf.yummy.kind} {conf.yummy.name} {conf.yummy.weight}')
+   with conf.declare_group('api') as cg: # `cg` stands for conf_group
+       cg.cache_expire = 60 * 60 * 24
+       cg.cache_prefix = 'proj_X_cache'
+       cg.url_base_path = 'api/v2/'
 
-   class Yummy:
-       # keep a configuration group in a variable
-       yummy_conf = conf.yummy
+Access Configuration
+--------------------
 
-       def get_yummy(self):
-           if self.yummy_conf.kind == 'seafood':
-               fishing_on_the_sea()
+After declared the group and properties, they are accessable through
+getting attribute from ``Conf`` object, like this ``conf.group_name.prop_name``.
+
+The rest of ``proj_X/api.py`` module.
+
+.. code:: python
+
+   @routes(conf.api.url_base_path + 'add')
+   @redis_cache(key=conf.api.cache_prefix, expire=conf.api.cache_expire)
+   def add(a, b)
+       return a + b
+
 
 Configuration properties and groups are immutable. They can only be globally
 changed by loading configuration files. Otherwise, they are always default
@@ -82,37 +107,85 @@ Traceback (most recent call last):
    ...
 confect.error.FrozenConfPropError: Configuration properties are frozen.
 
-Configuration File
-------------------
+Loading Configuration
+---------------------
+
+Configuration properties and groups are immutable. The standard way to change it
+is to load configuration from files or environment variables.
 
 Use ``Conf.load_conf_file(path)`` or ``Conf.load_conf_module(module_name)`` to
-load configuration files. No matter it is loaded before or after
-groups/properties declaration, property values in configuration file always
-override default values. Loading multiple files is possible, the latter one
-would replace old values.
+load configuration files, or use ``Conf.load_envvars(prefix)`` to load
+configuration from environment variable. No matter the loading statement is
+located before or after groups/properties declaration, property values in
+configuration file always override default values. It's possible to load configuration multiple times, the latter one would replace values from former loading.
 
 Be aware, you should access your configuration properties after load
 configuration files. If not, you might get wrong/default value. Therefore, we
-usually load configure file right after initilize the ``Conf``, and before
-loading all other modules that might access this ``Conf`` object.
+usually load configuration file right after the statement of creating the
+``Conf`` object.
 
-For instance, have the following code in ``your_package/core.py``, and ``from
-your_package.core import conf`` in other module.
+Sometimes, it is smart to use ``PYTHONPATH`` control the source of configuration
+file.
+
+.. code:: console
+
+   $ vi proj_X_conf.py
+   $ export PYTHONPATH=.
+   $ python your_application.py
+
+Here's an example of complex configuration loading.
 
 .. code:: python
 
    import sys
-   from confect import Conf
-   conf = Conf()
+   import confect
 
+   conf = confect.Conf()
+
+   # load configuration file
    if len(sys.argv) == 2:
        conf.load_conf_file(sys.argv[1])
    else:
-       conf.load_conf_file('default/path/to/conf.py')
+       try:
+          conf.load_conf_file('path/to/team_conf.py')
+       FileNotFoundError:
+          logger.warning('Unable to find team configuration file')
 
-The default configuration file is in Python. That makes your configuration file
-programmable and unrestricted. In configuration file, import ``confect.c``
-object and set all properties on it. Here's an example of configuration file.
+       try:
+          conf.load_conf_file('path/to/personal_conf.py')
+       FileNotFoundError:
+          logger.info('Unable to find personal configuration file')
+
+   # load configuration file through importing
+   try:
+       conf.load_module('proj_X_conf')
+   except ImportError:
+       logger.warning('Unable to load find configuration module %r',
+                      'proj_x_conf')
+
+   # overrides configuration with environment variables
+   conf.load_envvars('proj_X')
+
+
+Configuration File
+------------------
+
+The configuration file is in Python. That makes your configuration file
+programmable and unrestricted. It is possible and easy to
+
+- have complex type objects as configuration values, like Decimal, timedelta or
+  any class instance
+- dynamically handle complicated logic, you can use conditional statements like
+  ``if`` in it.
+- read other TOML/YMAL/JSON files or even environment variables in the
+  configuration file.
+
+It's not necessary and is unusual to have all configuration properties in the
+configuration file. Put only those configuration properties and corresponding
+values that you want to override to the configuration file.
+
+In configuration file, import ``confect.c`` object and set all properties on it
+as if ``c`` is the conf object. Here's an example of configuration file.
 
 .. code-block:: python
 
@@ -123,13 +196,16 @@ object and set all properties on it. Here's an example of configuration file.
    c.yummy.weight = 25
 
    import os
+   # simple calculation or loading env var
    c.cache.expire = 60 * 60 # one hour
    c.cache.key = os.environ['CACHE_KEY']
 
+   # it's easy to have conditional statement
    DEBUG = True
    if DEBUG:
        c.cache.disable = True
 
+   # loading some secret file and set configuration
    import json
    with open('secret.json') as f:
        secret = json.load(f)
@@ -142,23 +218,6 @@ possible to import it in your source code. You can set any property in any
 configuration group onto the ``c`` object. However, they are only accessable if
 you declared it in the source code with ``Conf.declare_group(group_name)``.
 
-If it's hard for you to specify the path of configuration file. You can load it
-through the import system of Python. Put your configuration file somewhere under
-your package or make ``PYTHONPATH`` pointing to the directory it resides. Then
-load it with ``Conf.load_conf_module(module_name)``.
-
-.. code:: console
-
-   $ edit my_conf.py
-   $ export PYTHONPATH=.
-   $ python your_application.py
-
-
-.. code:: python
-
-   from confect import Conf
-   conf = Conf()
-   conf.load_conf_module('my_conf')
 
 Load Environment Variables
 ---------------------------
@@ -173,27 +232,34 @@ variable.
 >>> import os
 >>> os.environ['proj_X.cache.expire'] = '3600'
 
->>> conf = confect.new_conf()
+>>> conf = confect.Conf()
 >>> conf.load_envvars('proj_X')  # doctest: +SKIP
+
+If ``cache.expire`` has been declared, then
+
+>>> conf.cache.expire
+3600
 
 Confect includes predefined parsers of these primitive types.
 
-- ``str``
-- ``int``
-- ``float``
-- ``bytes``
-- ``datetime.datetime``
-- ``datetime.date``
-- ``tuple``
-- ``dict``
-- ``list``
+- ``str``: ``s``
+- ``int``: ``int(s)``
+- ``float``: ``float(s)``
+- ``bytes``: ``s.decode()``
+- ``datetime.datetime`` : ``pendulum.parse(s)``
+- ``datetime.date`` : ``pendulum.parse(s).date()``
+- ``Decimal`` : ``decimal.Decimal(s)``
+- ``tuple`` : ``json.loads(s)``
+- ``dict``: ``json.loads(s)``
+- ``list``: ``json.loads(s)``
 
 Mutable Environment
 -----------------
 
-``Conf.mutate_locally()`` context manager creates an environment that makes ``Conf``
-object temporarily mutable. All changes would be restored when it leaves the
-block. It is usaful on writing test case or testing configuration properties in Python REPL.
+``Conf.mutate_locally()`` context manager creates an environment that makes
+``Conf`` object temporarily mutable. All changes would be restored when it
+leaves the block. It is usaful on writing test case or testing configuration
+properties in Python REPL.
 
 >>> conf = Conf()
 >>> conf.declare_group(  # declare group through keyword arguments

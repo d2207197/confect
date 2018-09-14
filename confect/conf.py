@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class Undefined:
     '''Undefined value'''
     __instance = None
+    __slots__ = ()
 
     def __new__(cls):
         if cls.__instance is None:
@@ -261,7 +262,7 @@ class Conf:
             self[name] = value
 
     def __dir__(self):
-        return self._conf_groups.keys()
+        return object.__dir__(self) + list(self._conf_groups.keys())
 
     def __deepcopy__(self, memo):
         cls = type(self)
@@ -368,7 +369,7 @@ class Conf:
 
 
 class ConfGroupPropertySetter:
-    __slots__ = '_conf_group'
+    __slots__ = ('_conf_group',)
 
     def __init__(self, conf_group):
         self._conf_group = conf_group

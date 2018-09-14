@@ -51,7 +51,7 @@ def test_declare_custom_parser1():
 
         return dt.timedelta(**{unit: amount})
 
-    conf = confect.new_conf()
+    conf = confect.Conf()
 
     with conf.declare_group('yo') as g:
         g.some_prop = conf.prop(
@@ -59,7 +59,7 @@ def test_declare_custom_parser1():
 
 
 def test_declare_custom_parser2():
-    conf = confect.new_conf()
+    conf = confect.Conf()
 
     with conf.declare_group('dummy') as cg:
         cg.a_number = 3
@@ -77,7 +77,7 @@ def test_declare_custom_parser2():
 
 @pytest.fixture
 def conf():
-    conf = confect.new_conf()
+    conf = confect.Conf()
 
     with conf.declare_group('dummy') as cg:
         cg.a_number = 3
