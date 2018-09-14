@@ -1,7 +1,7 @@
 Confect
 =======
 
-``confect`` is a Python configuration library with the following features.
+**confect** is a Python configuration library with the following features.
 
 - A readable and pleasant configuration definition and accessing interface
 - Predefined configuration and immutable conf object for reducing the
@@ -24,8 +24,9 @@ Install
 ``confect`` is a Python package hosted on PyPI and works only with Python 3.6 up.
 
 Just like other Python package, install it by `pip
-<https://pip.pypa.io/en/stable/>`_ into a  `virtualenv <https://hynek.me/articles/virtualenv-lives/>`_, or use `poetry <https://poetry.eustace.io/>`_ to
-manage project dependencies and virtualenv.
+<https://pip.pypa.io/en/stable/>`_ into a `virtualenv
+<https://hynek.me/articles/virtualenv-lives/>`_, or use `poetry
+<https://poetry.eustace.io/>`_ to manage project dependencies and virtualenv.
 
 .. code:: console
 
@@ -216,8 +217,8 @@ as if ``c`` is the conf object. Here's an example of configuration file.
 
 The ``c`` object only exits when loading a python configuration file, it's not
 possible to import it in your source code. You can set any property in any
-configuration group onto the ``c`` object. However, they are only accessable if
-you declared it in the source code with ``Conf.declare_group(group_name)``.
+configuration group onto the ``c`` object. However,
+*they are only accessable if you declared it in the source code with* ``Conf.declare_group(group_name)``.
 
 
 Load Environment Variables
