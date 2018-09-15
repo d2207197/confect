@@ -73,9 +73,13 @@ properties. And make sure that the declaration is before all the lines that
 access these properties. Normally, the group name is your class name, module
 name or subpackage name.
 
-Suppose that there's a ``proj_X/api.py`` module.
+Suppose that there's a ``proj_X/api.py`` module for http API service. 
+We declared a new configuration group named of ``api``. 
+And we need three configuration properties for the API service, 
+``cache_expire``, ``cache_prefix`` and ``url_base_path``.
 
 .. code:: python
+   :number-lines: 1
 
    from proj_X.core import conf
 
@@ -88,11 +92,12 @@ Access Configuration
 --------------------
 
 After declared the group and properties, they are accessable through
-getting attribute from ``Conf`` object, like this ``conf.group_name.prop_name``.
+getting attribute from the ``Conf`` object, like this ``conf.group_name.prop_name``.
 
-The rest of ``proj_X/api.py`` module.
+Here's the rest of ``proj_X/api.py`` module for demostrating how to access configurations.
 
 .. code:: python
+   :number-lines: 9
 
    @routes(conf.api.url_base_path + 'add')
    @redis_cache(key=conf.api.cache_prefix, expire=conf.api.cache_expire)
