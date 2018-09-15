@@ -52,7 +52,7 @@ is your top-level package name. Put the following lines into
    except ImportError:
        pass
 
-   # overrides configuration with environment variables
+   # overrides configuration with environment variables with the prefix `proj_X`
    conf.load_envvars('proj_X')
 
 It is possible to create multiple ``Conf`` objects, but normally we don't need
