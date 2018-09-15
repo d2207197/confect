@@ -37,9 +37,9 @@ Initialize Conf object
 ---------------
 
 Calling ``conf = confect.Conf()`` creates a new configuration manager object.
-Put following lines in your application package. For example, suppose ``proj_X``
-is your top-level package name. Put the following lines into
-``proj_X.__init__.py`` or ``proj_X.core.py``.
+
+For example, suppose ``proj_X`` is your top-level package name. 
+Put the following lines into ``proj_X.core.py``.
 
 .. code:: python
 
@@ -54,6 +54,13 @@ is your top-level package name. Put the following lines into
 
    # overrides configuration with environment variables with the prefix `proj_X`
    conf.load_envvars('proj_X')
+   
+And import the module in ``proj_X.__init__.py``
+
+.. code:: python
+
+   from proj_X import core
+   
 
 It is possible to create multiple ``Conf`` objects, but normally we don't need
 it. In most cases, initialize only one ``Conf`` object in one module in your
