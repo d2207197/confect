@@ -116,7 +116,7 @@ Configuration properties and groups are immutable. They can only be globally
 changed by loading configuration files. Otherwise, they are always default
 values.
 
->>> conf.yummy.name = 'octopus'
+>>> conf.api.cache_expire = 60 * 60 * 3
 Traceback (most recent call last):
    ...
 confect.error.FrozenConfPropError: Configuration properties are frozen.
