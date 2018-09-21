@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "confect"
-version = "0.2.7"
-description = "Python configuration library that provides pleasant configuration definition and access interface, and it reads unrestricted python configuration file."
+version = "0.2.8"
+description = "a Python configuration library loads Python configuration files"
 authors = ["顏孜羲 <joseph.yen@gmail.com>"]
 license = "apache-2.0"
 readme = "README.rst"
