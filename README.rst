@@ -40,7 +40,7 @@ How confect differs from others?
     
 
 Install
--------
+========
 
 ``confect`` is a Python package hosted on PyPI and works only with Python 3.6 up.
 
@@ -54,8 +54,11 @@ Just like other Python packages, install it by `pip
    $ pip install confect
 
 
+Basic Usage
+===========
+
 Initialize Conf object
----------------
+----------------------
 
 Calling ``conf = confect.Conf()`` creates a new configuration manager object.
 
@@ -150,6 +153,54 @@ Traceback (most recent call last):
    ...
 confect.error.FrozenConfPropError: Configuration properties are frozen.
 
+Configuration File
+------------------
+
+Confect loads configuration files is in Python. That makes your configuration file
+programmable and unrestricted as we described in the section `How confect differs from others?`_.
+
+It's not necessary and is unusual to have all configuration properties be defined in the
+configuration file. *Put only those configuration properties and corresponding
+values that you want to override to the configuration file.*
+
+In configuration file, import ``confect.c`` object and set all properties on it
+as if ``c`` is the conf object. Here's an example of configuration file.
+
+.. code-block:: python
+
+   from confect import c
+
+   c.yummy.kind = 'poultry'
+   c.yummy.name = 'chicken'
+   c.yummy.weight = 25
+
+   import os
+   # simple calculation or loading env var
+   c.cache.expire = 60 * 60 # one hour
+   c.cache.key = os.environ['CACHE_KEY']
+
+   # it's easy to have conditional statement
+   DEBUG = True
+   if DEBUG:
+       c.cache.disable = True
+
+   # loading some secret file and set configuration
+   import json
+   with open('secret.json') as f:
+       secret = json.load(f)
+
+   c.secret.key = secret['key']
+   c.secret.token = secret['token']
+
+The ``c`` object only exits when loading a python configuration file, it's not
+possible to import it in your source code. You can set any property in any
+configuration group onto the ``c`` object. However,
+*they are only accessable if you declared it in the source code with* ``Conf.declare_group(group_name)``.
+
+
+Advanced Usage
+==============
+
 Loading Configuration
 ---------------------
 
@@ -212,49 +263,6 @@ Here's an much more complex example that demostrates how to dynamically select a
    conf.load_envvars('proj_X')
 
 
-Configuration File
-------------------
-
-Confect loads configuration files is in Python. That makes your configuration file
-programmable and unrestricted as we described in the section `How confect differs from others?`_.
-
-It's not necessary and is unusual to have all configuration properties be defined in the
-configuration file. *Put only those configuration properties and corresponding
-values that you want to override to the configuration file.*
-
-In configuration file, import ``confect.c`` object and set all properties on it
-as if ``c`` is the conf object. Here's an example of configuration file.
-
-.. code-block:: python
-
-   from confect import c
-
-   c.yummy.kind = 'poultry'
-   c.yummy.name = 'chicken'
-   c.yummy.weight = 25
-
-   import os
-   # simple calculation or loading env var
-   c.cache.expire = 60 * 60 # one hour
-   c.cache.key = os.environ['CACHE_KEY']
-
-   # it's easy to have conditional statement
-   DEBUG = True
-   if DEBUG:
-       c.cache.disable = True
-
-   # loading some secret file and set configuration
-   import json
-   with open('secret.json') as f:
-       secret = json.load(f)
-
-   c.secret.key = secret['key']
-   c.secret.token = secret['token']
-
-The ``c`` object only exits when loading a python configuration file, it's not
-possible to import it in your source code. You can set any property in any
-configuration group onto the ``c`` object. However,
-*they are only accessable if you declared it in the source code with* ``Conf.declare_group(group_name)``.
 
 
 Load Environment Variables
