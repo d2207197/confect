@@ -63,7 +63,7 @@ Initialize Conf object
 Calling ``conf = confect.Conf()`` creates a new configuration manager object.
 
 For example, suppose ``proj_X`` is your top-level package name. 
-Put the following lines into ``proj_X.core.py``.
+Put the following lines into ``proj_X/core.py``.
 
 .. code:: python
 
