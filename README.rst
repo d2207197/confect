@@ -320,7 +320,7 @@ properties in Python REPL.
 To-Dos
 ======
 
-- A function for loading dictionary into ``conflect.c``.
-- A function that loads command line arguments and overrides configuration properties.
+- A public interface for exporting a conf group into a dictionary
+- A plugin for `Click <http://click.pocoo.org/5/>`_ arg `argparse <https://docs.python.org/3/library/argparse.html>`_  that adds command line options for altering configuration properties.
 - Copy-on-write mechenism in ``conf.mutate_locally()`` for better performance and memory usage.
 - API reference page
