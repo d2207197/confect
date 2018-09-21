@@ -214,10 +214,10 @@ Here's an example of complex configuration loading.
 Configuration File
 ------------------
 
-The configuration file is in Python. That makes your configuration file
+Confect loads configuration files is in Python. That makes your configuration file
 programmable and unrestricted. 
 It's easy to do the following things in the Python configuration file. 
-Yet for TOML/YMAL/ini files, all these are impossible.
+Yet for TOML/YMAL/JSON/ini files, all these are impossible.
 
 - have complex type objects as configuration values, like Decimal, timedelta or
   any class instance
@@ -226,7 +226,7 @@ Yet for TOML/YMAL/ini files, all these are impossible.
 - read other TOML/YMAL/JSON/ini files or even environment variables in the
   configuration file.
 
-It's not necessary and is unusual to have all configuration properties in the
+It's not necessary and is unusual to have all configuration properties be defined in the
 configuration file. *Put only those configuration properties and corresponding
 values that you want to override to the configuration file.*
 
