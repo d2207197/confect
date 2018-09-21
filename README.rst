@@ -15,7 +15,7 @@ Why you need a configuration library?
   
 - You're doing some experiments, e.g. Machine Learning projects. 
   There're a bunch of parameters needs to be changed in the run time. 
-  And you want to manage them in a smarter and elegant way.
+  And you want to manage them in a smarter and more elegant way.
 
 How confect differs from others?
 -------------------------------------
