@@ -55,11 +55,12 @@ Put the following lines into ``proj_X.core.py``.
    # overrides configuration with environment variables with the prefix `proj_X`
    conf.load_envvars('proj_X')
    
-And import the module in ``proj_X.__init__.py``
+And import the ``conf`` object module in any other module
 
 .. code:: python
 
-   from proj_X import core
+   from proj_X.core import conf
+
    
 
 It is possible to create multiple ``Conf`` objects, but normally we don't need
