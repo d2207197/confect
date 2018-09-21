@@ -19,7 +19,7 @@ How **confect** differs from others?
     or any class instance
   + dynamically handle complicated logic, you can use conditional statements
     like ``if`` in it.
-  + read other TOML/YMAL/JSON files or even environment variables in the
+  + read other TOML/YMAL/JSON/ini files or even environment variables in the
     configuration file.
 
 - supports multiple configuration file loading ways and can load multiple times.
