@@ -4,11 +4,11 @@ Confect
 **confect** is a Python configuration library with the following features.
 
 - A readable and pleasant configuration definition and accessing interface
-- Predefined configuration and immutable conf object for reducing the
-  possibility of making errors. You shouldn't modify configuration too
-  dynamically as if they are global variables.
+- Forcing users to predefine configuration properties, and immutable conf object
+  for reducing the possibility of making errors. You shouldn't modify 
+  configuration too dynamically as if they are global variables.
 - Loading configuration file from file path, module importing or even from
-  environment variable.
+  environment variables.
 - Configuration files in Python. This makes it possible to
 
   + have complex type objects as configuration values, like Decimal, timedelta
