@@ -13,7 +13,7 @@ Why you need a configuration library?
   For example, database IP addresses and passwords in development environment normally differs from production environment. 
   You need multiple configuration files for storing those information for different environment, and load one of them in the run time.
   
-- You're doing some experiments, e.g. Machine Learning projects. 
+- You're running some experiments, e.g. working on Machine Learning projects. 
   There're a bunch of parameters needs to be changed in the run time. 
   And you want to manage them in a smarter and more elegant way.
 
