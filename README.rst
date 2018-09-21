@@ -36,7 +36,6 @@ How confect differs from others?
 - forces users to predefine configuration properties for readability and maintainability.
 - Immutable conf object for reducing the possibility of making errors. 
   No one should modify configuration too dynamically as if they are global variables.
-- A readable and pleasant accessing interface
     
 
 Install
