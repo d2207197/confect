@@ -1,24 +1,7 @@
-Confect
-=======
+Confect - a Python configuration library loads Python configuration files
+=============================================================================
 
-**confect** is a Python configuration library with the following features.
-
-- A readable and pleasant configuration definition and accessing interface
-- Forcing users to predefine configuration properties for readability and maintainability.
-- Immutable conf object for reducing the possibility of making errors. 
-  No one should modify configuration too dynamically as if they are global variables.
-- Loading configuration file from file path, module importing or even from
-  environment variables.
-- Configuration files in Python. This makes it possible to
-
-  + have complex type objects as configuration values, like Decimal, timedelta
-    or any class instance
-  + dynamically handle complicated logic, you can use conditional statements
-    like ``if`` in it.
-  + read other TOML/YMAL/JSON files or even environment variables in the
-    configuration file.
-    
-Why you need a configuration library
+Why you need a configuration library?
 -------------------------------------
 
 - You have a project that needs to access database or other services with password or some secret keys. 
@@ -26,6 +9,28 @@ Why you need a configuration library
   You need a configuration file and a library for loading and using it.
 - Your project runs in different environment. 
   For example, database IP addresses and passwords in development environment normally differs from production environment. You need a configuration file for storing those information and load them in the run time.
+
+How **confect** differs from others?
+-------------------------------------
+
+- loads Python configuration files. This makes it possible to
+
+  + have complex type objects as configuration values, like Decimal, timedelta
+    or any class instance
+  + dynamically handle complicated logic, you can use conditional statements
+    like ``if`` in it.
+  + read other TOML/YMAL/JSON files or even environment variables in the
+    configuration file.
+
+- supports multiple configuration file loading ways and can load multiple times.
+  It loads configuration file through a given file path, or through module importing. 
+- loads configurations properties from environment variable. 
+  It's convenient if you want to change single or some properties values and don't want to modify the configuration file.
+- forces users to predefine configuration properties for readability and maintainability.
+- Immutable conf object for reducing the possibility of making errors. 
+  No one should modify configuration too dynamically as if they are global variables.
+- A readable and pleasant accessing interface
+    
 
 Install
 -------
