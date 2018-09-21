@@ -18,7 +18,7 @@ Confect
   + read other TOML/YMAL/JSON files or even environment variables in the
     configuration file.
     
-User scenarios
+## Why you need a configuration library
 
 - You have a project that needs to access database or other services with password or some secret keys. 
   Storing secret and password in your code is not smart. 
