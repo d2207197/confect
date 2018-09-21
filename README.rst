@@ -177,7 +177,8 @@ file.
    $ export PYTHONPATH=.
    $ python your_application.py
 
-Here's an example of complex configuration loading.
+The code in the section `Initialize Conf object`_ is a simple example that loads only through module importing. 
+Here's an much more complex example that demostrates how to dynamically select and load configurations.
 
 .. code:: python
 
@@ -215,16 +216,7 @@ Configuration File
 ------------------
 
 Confect loads configuration files is in Python. That makes your configuration file
-programmable and unrestricted. 
-It's easy to do the following things in the Python configuration file. 
-Yet for TOML/YMAL/JSON/ini files, all these are impossible.
-
-- have complex type objects as configuration values, like Decimal, timedelta or
-  any class instance
-- dynamically handle complicated logic, you can use conditional statements like
-  ``if`` in it.
-- read other TOML/YMAL/JSON/ini files or even environment variables in the
-  configuration file.
+programmable and unrestricted as we described in the section `How **confect** differs from others?`_.
 
 It's not necessary and is unusual to have all configuration properties be defined in the
 configuration file. *Put only those configuration properties and corresponding
