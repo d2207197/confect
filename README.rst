@@ -4,9 +4,9 @@ Confect
 **confect** is a Python configuration library with the following features.
 
 - A readable and pleasant configuration definition and accessing interface
-- Forcing users to predefine configuration properties, and immutable conf object
-  for reducing the possibility of making errors. You shouldn't modify 
-  configuration too dynamically as if they are global variables.
+- Forcing users to predefine configuration properties for readability and maintainability.
+- Immutable conf object for reducing the possibility of making errors. 
+  No one should modify configuration too dynamically as if they are global variables.
 - Loading configuration file from file path, module importing or even from
   environment variables.
 - Configuration files in Python. This makes it possible to
@@ -23,7 +23,7 @@ Install
 
 ``confect`` is a Python package hosted on PyPI and works only with Python 3.6 up.
 
-Just like other Python package, install it by `pip
+Just like other Python packages, install it by `pip
 <https://pip.pypa.io/en/stable/>`_ into a `virtualenv
 <https://hynek.me/articles/virtualenv-lives/>`_, or use `poetry
 <https://poetry.eustace.io/>`_ to manage project dependencies and virtualenv.
@@ -61,25 +61,32 @@ And import the ``conf`` object module in any other module
 
    from proj_X.core import conf
 
-   
-
-It is possible to create multiple ``Conf`` objects, but normally we don't need
-it. In most cases, initialize only one ``Conf`` object in one module in your
+It is possible to create multiple ``Conf`` objects, but normally you don't need
+it. In most cases, initialize only one ``Conf`` object in one module of your
 package, then import and use it anywhere in your application.
 
 Declare Configuration Groups and Properties
 -------------------------------------------
 
-Configuration properties should be declared before using it. Use
-``Conf.declare_group(group_name)`` context manager to declare a configuration
+Configuration properties should be declared before using it. This feature makes 
+your code more readable and maintainable. Default values of all properties
+should be defined along with the configuration declaration. 
+It doesn't have to be a workable value
+(like some secret key you shouldn't put it in the code), 
+the true workable value can be defined 
+in the configuration file. 
+However, even if it's not a workable value, 
+the default values still makes the declaration and the code more readable.
+
+Use ``Conf.declare_group(group_name)`` context manager to declare a configuration
 group and all properties under it at the same time. It's nessasery to provide
 default values for each properties. Default values can be any type. The group
-name should be valid attribute names.
+name should be a valid attribute name.
 
-Put your configuration group declaration code in modules where you need those
+Put your configuration group declaration code in the module where you need those
 properties. And make sure that the declaration is before all the lines that
-access these properties. Normally, the group name is your class name, module
-name or subpackage name.
+access these properties, or it would raise exceptions.
+Normally, the group name is your class name, module name or subpackage name.
 
 Suppose that there's a ``proj_X/api.py`` module for http API service. 
 We declared a new configuration group named of ``api``. 
@@ -99,7 +106,7 @@ And we need three configuration properties for the API service,
 Access Configuration
 --------------------
 
-After declared the group and properties, they are accessable through
+After the group and properties are declared, they are accessable through
 getting attribute from the ``Conf`` object, like this ``conf.group_name.prop_name``.
 
 Here's the rest of ``proj_X/api.py`` module for demostrating how to access configurations.
