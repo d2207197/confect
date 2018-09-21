@@ -100,20 +100,19 @@ Use ``PYTHONPATH`` environment varibale to control the source of configuration f
 Declare Configuration Groups and Properties
 -------------------------------------------
 
-Configuration properties should be declared before using it. This feature makes 
+**Configuration properties should be declared before using it.** This feature makes 
 your code more readable and maintainable. Default values of all properties
 should be defined along with the configuration declaration. 
 It doesn't have to be a workable value
-(like some secret key you shouldn't put it in the code), 
+(like some secret keys or passwords you shouldn't put it in the code), 
 the true workable value can be defined 
 in the configuration file. 
 However, even if it's not a workable value, 
-the default values still makes the declaration and the code more readable.
+the mock default values still makes the declaration and the code more readable.
 
 Use ``Conf.declare_group(group_name)`` context manager to declare a configuration
-group and all properties under it at the same time. It's nessasery to provide
-default values for each properties. Default values can be any type. The group
-name should be a valid attribute name.
+group and all properties and default values under it at the same time. 
+Default values can be any type. The group name should be a valid attribute name.
 
 Put your configuration group declaration code in the module where you need those
 properties. And make sure that the declaration is before all the lines that
@@ -152,7 +151,7 @@ Here's the rest of ``proj_X/api.py`` module for demostrating how to access confi
        return a + b
 
 
-Configuration properties and groups are immutable. They can only be globally
+**Configuration properties and groups are immutable.** They can only be globally
 changed by loading configuration files. Otherwise, they are always default
 values.
 
@@ -203,7 +202,7 @@ as if ``c`` is the conf object. Here's an example of configuration file.
 The ``c`` object only exits when loading a python configuration file, it's not
 possible to import it in your source code. You can set any property in any
 configuration group onto the ``c`` object. However,
-*they are only accessable if you declared it in the source code with* ``Conf.declare_group(group_name)``.
+**they are only accessable if you declared it in the source code with** ``Conf.declare_group(group_name)``.
 
 
 Advanced Usage
@@ -226,8 +225,6 @@ Be aware, *you should access your configuration properties after load
 configuration files.* If not, you might get wrong/default value. Therefore, we
 usually load configuration file right after the statement of creating the
 ``Conf`` object.
-
-
 
 The code in the section `Initialize Conf object`_ is a simple example that loads only through module importing. 
 Here's an much more complex example that demostrates how to dynamically select and load configurations.
@@ -262,8 +259,6 @@ Here's an much more complex example that demostrates how to dynamically select a
 
    # overrides configuration with environment variables
    conf.load_envvars('proj_X')
-
-
 
 
 Load Environment Variables
