@@ -194,13 +194,15 @@ Configuration File
 ------------------
 
 The configuration file is in Python. That makes your configuration file
-programmable and unrestricted. It is possible and easy to
+programmable and unrestricted. 
+It's easy to do the following things in the Python configuration file. 
+Yet for TOML/YMAL/ini files, all these are impossible.
 
 - have complex type objects as configuration values, like Decimal, timedelta or
   any class instance
 - dynamically handle complicated logic, you can use conditional statements like
   ``if`` in it.
-- read other TOML/YMAL/JSON files or even environment variables in the
+- read other TOML/YMAL/JSON/ini files or even environment variables in the
   configuration file.
 
 It's not necessary and is unusual to have all configuration properties in the
