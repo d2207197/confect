@@ -17,7 +17,7 @@ Why you need a configuration library?
   There're a bunch of parameters needs to be changed in the run time. 
   And you want to manage them in a smarter and elegant way.
 
-How **confect** differs from others?
+How confect differs from others?
 -------------------------------------
 
 - loads Python configuration files. This makes it possible to
@@ -216,7 +216,7 @@ Configuration File
 ------------------
 
 Confect loads configuration files is in Python. That makes your configuration file
-programmable and unrestricted as we described in the section `How **confect** differs from others?`_.
+programmable and unrestricted as we described in the section `How confect differs from others?`_.
 
 It's not necessary and is unusual to have all configuration properties be defined in the
 configuration file. *Put only those configuration properties and corresponding
