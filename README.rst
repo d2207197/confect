@@ -5,7 +5,7 @@ Why you need a configuration library?
 -------------------------------------
 
 - You have a project that needs to access database or other services with password or some secret keys. 
-  **Storing secret and password in your code is not smart.** 
+  **Storing secrets and passwords in your code is not smart.** 
   You need a configuration file and a library for loading and using it.
 - Your project runs in different environment. 
   For example, database IP addresses and passwords in development environment normally differs from production environment. You need multiple configuration files for storing those information for different environment, and load one of them in the run time.
