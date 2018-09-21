@@ -89,6 +89,14 @@ It is possible to create multiple ``Conf`` objects, but normally you don't need
 it. In most cases, initialize only one ``Conf`` object in one module of your
 package, then import and use it anywhere in your application.
 
+Use ``PYTHONPATH`` environment varibale to control the source of configuration file.
+
+.. code:: console
+
+   $ vi proj_X_conf.py
+   $ export PYTHONPATH=.
+   $ python your_application.py
+
 Declare Configuration Groups and Properties
 -------------------------------------------
 
@@ -219,14 +227,7 @@ configuration files.* If not, you might get wrong/default value. Therefore, we
 usually load configuration file right after the statement of creating the
 ``Conf`` object.
 
-Sometimes, it is smart to use ``PYTHONPATH`` control the source of configuration
-file.
 
-.. code:: console
-
-   $ vi proj_X_conf.py
-   $ export PYTHONPATH=.
-   $ python your_application.py
 
 The code in the section `Initialize Conf object`_ is a simple example that loads only through module importing. 
 Here's an much more complex example that demostrates how to dynamically select and load configurations.
