@@ -1,3 +1,4 @@
+
 Confect - a Python configuration library loads Python configuration files
 =============================================================================
 
@@ -5,16 +6,16 @@ Why you need a configuration library?
 -------------------------------------
 
 
-- You have a project that needs to access database or other services with password or some secret keys. 
-  Storing secrets and passwords in your code is not smart. 
+- You have a project that needs to access database or other services with password or some secret keys.
+  Storing secrets and passwords in your code is not smart.
   You need a configuration file and a library for loading and using it.
 
-- Your project runs in different environments. 
-  For example, database IP addresses and passwords in development environment normally differs from production environment. 
+- Your project runs in different environments.
+  For example, database IP addresses and passwords in development environment normally differs from production environment.
   You need multiple configuration files for storing those information for different environment, and load one of them in the run time.
-  
-- You're running some experiments, e.g. working on Machine Learning projects. 
-  There're a bunch of parameters needs to be changed in the run time. 
+
+- You're running some experiments, e.g. working on Machine Learning projects.
+  There're a bunch of parameters needs to be changed in the run time.
   And you want to manage them in a smarter and more elegant way.
 
 How confect differs from others?
@@ -30,23 +31,22 @@ How confect differs from others?
     configuration file.
 
 - supports multiple configuration file loading ways and can load multiple times.
-  It loads configuration file through a given file path, or through module importing. 
-- loads configurations properties from environment variable. 
+  It loads configuration file through a given file path, or through module importing.
+- loads configurations properties from environment variable.
   It's convenient if you want to change single or some properties values and don't want to modify the configuration file.
+- attachs command line options to some click_ command.
 - forces users to predefine configuration properties for readability and maintainability.
-- Immutable conf object for reducing the possibility of making errors. 
+- Immutable conf object for reducing the possibility of making errors.
   No one should modify configuration too dynamically as if they are global variables.
-    
+
 
 Install
 ========
 
 ``confect`` is a Python package hosted on PyPI and works only with Python 3.6 up.
 
-Just like other Python packages, install it by `pip
-<https://pip.pypa.io/en/stable/>`_ into a `virtualenv
-<https://hynek.me/articles/virtualenv-lives/>`_, or use `poetry
-<https://poetry.eustace.io/>`_ to manage project dependencies and virtualenv.
+Just like other Python packages, install it by pip_ into a virtualenv_
+, or use poetry_ to manage project dependencies and virtualenv.
 
 .. code:: console
 
@@ -61,7 +61,7 @@ Initialize Conf object
 
 Calling ``conf = confect.Conf()`` creates a new configuration manager object.
 
-For example, suppose ``proj_X`` is your top-level package name. 
+For example, suppose ``proj_X`` is your top-level package name.
 Put the following lines into ``proj_X/core.py``.
 
 .. code:: python
@@ -77,7 +77,7 @@ Put the following lines into ``proj_X/core.py``.
 
    # overrides configuration with environment variables with the prefix `proj_X`
    conf.load_envvars('proj_X')
-   
+
 And import the ``conf`` object module in any other module
 
 .. code:: python
@@ -99,39 +99,42 @@ Use ``PYTHONPATH`` environment varibale to control the source of configuration f
 Declare Configuration Groups and Properties
 -------------------------------------------
 
-**Configuration properties should be declared before using it.** This feature makes 
-your code more readable and maintainable. Default values of all properties
-should be defined along with the configuration declaration. 
-It doesn't have to be a workable value
-(like some secret keys or passwords you shouldn't put it in the code), 
-the true workable value can be defined 
-in the configuration file. 
-However, even if it's not a workable value, 
-the mock default values still makes the declaration and the code more readable.
+**Configuration properties should be declared before using it.** This feature
+makes your code more readable and maintainable.
 
-Use ``Conf.declare_group(group_name)`` context manager to declare a configuration
-group and all properties and default values under it at the same time. 
+Use ``Conf.declare_group(group_name)`` context manager to declare a new
+configuration group along with all properties and corresponding default values.
 Default values can be any type. The group name should be a valid attribute name.
+Normally, the group name is your class name, module name
+or subpackage name.
 
-Put your configuration group declaration code in the module where you need those
-properties. And make sure that the declaration is before all the lines that
-access these properties, or it would raise exceptions.
-Normally, the group name is your class name, module name or subpackage name.
-
-Suppose that there's a ``proj_X/api.py`` module for http API service. 
-We declared a new configuration group named of ``api``. 
-And we need three configuration properties for the API service, 
-``cache_expire``, ``cache_prefix`` and ``url_base_path``.
+The following code can be in the ``proj_X/core.py`` module after ``conf =
+confect.Conf()``, or in those modules where you need these configuration, like
+``proj_X/db.py`` or ``proj_X/api.py``.
 
 .. code:: python
-   :number-lines: 1
-
-   from proj_X.core import conf
 
    with conf.declare_group('api') as cg: # `cg` stands for conf_group
        cg.cache_expire = 60 * 60 * 24
        cg.cache_prefix = 'proj_X_cache'
        cg.url_base_path = 'api/v2/'
+
+   with conf.declare_group('db') as cg:
+       cg.db_name = 'proj_x'
+       cg.username = 'proj_x_admin'
+       cg.password = 'your_password'
+       cg.host = '127.0.0.1'
+
+
+Make sure that the declaration is before all the lines that access these
+properties. If not, exceptions would be raised.
+
+Default values of all properties should be defined along with the configuration
+declaration. It doesn't have to be a workable value (e.g. fake secret keys or
+passwords), the true workable value can be defined in the configuration file.
+However, even if it's not a workable value, the mock default values still makes
+the declaration and the code more readable and maintainable.
+
 
 Access Configuration
 --------------------
@@ -139,15 +142,28 @@ Access Configuration
 After the group and properties are declared, they are accessable through
 getting attribute from the ``Conf`` object, like this ``conf.group_name.prop_name``.
 
-Here's the rest of ``proj_X/api.py`` module for demostrating how to access configurations.
+``proj_X/api.py``
+.................
 
 .. code:: python
-   :number-lines: 9
+
+   from proj_X.core import conf
 
    @routes(conf.api.url_base_path + 'add')
    @redis_cache(key=conf.api.cache_prefix, expire=conf.api.cache_expire)
    def add(a, b)
        return a + b
+
+``proj_X/db.py``
+.................
+
+.. code:: python
+
+   from proj_X.core import conf
+
+   engine = create_engine(
+        f'mysql://{conf.db.username}:{conf.db.password}'
+        f'@{conf.db.host}/{conf.db.db_name}')
 
 
 **Configuration properties and groups are immutable.** They can only be globally
@@ -172,36 +188,85 @@ values that you want to override to the configuration file.*
 In configuration file, import ``confect.c`` object and set all properties on it
 as if ``c`` is the conf object. Here's an example of configuration file.
 
-.. code-block:: python
+.. code:: python
 
    from confect import c
 
-   c.yummy.kind = 'poultry'
-   c.yummy.name = 'chicken'
-   c.yummy.weight = 25
-
    import os
-   # simple calculation or loading env var
-   c.cache.expire = 60 * 60 # one hour
-   c.cache.key = os.environ['CACHE_KEY']
 
-   # it's easy to have conditional statement
    DEBUG = True
+
    if DEBUG:
-       c.cache.disable = True
+       c.cache.expire = 1
+
+   c.cache.key = os.environ['CACHE_KEY']
 
    # loading some secret file and set configuration
    import json
-   with open('secret.json') as f:
-       secret = json.load(f)
+   with open('db_secret.json') as f:
+       db_secret = json.load(f)
 
-   c.secret.key = secret['key']
-   c.secret.token = secret['token']
+   c.db.username = db_secret['username']
+   c.db.password = db_secret['password']
+
+
+You can set any property in any configuration group onto the ``c`` object.
+However, **they are only accessable if you declared it in the source code with**
+``Conf.declare_group(group_name)``.
 
 The ``c`` object only exits when loading a python configuration file, it's not
-possible to import it in your source code. You can set any property in any
-configuration group onto the ``c`` object. However,
-**they are only accessable if you declared it in the source code with** ``Conf.declare_group(group_name)``.
+possible to import it in your source code.
+
+
+Add command line options
+-------------------------
+
+``conf.click_options`` decorator attachs all declared configuration to a click_
+command.
+
+
+``proj_X/cli.py``
+.................
+
+.. code:: python
+
+   import click
+   from proj_X.core import conf
+
+   @click.command()
+   @conf.click_options
+   def cli():
+       click.echo(f'cache_expire = {conf.api.cache_expire}')
+
+   if __name__ == '__main__':
+       cli()
+
+It automatically creates a comprehensive help message with all properties and default values.
+
+.. code:: console
+
+   $ python -m proj_X.cli --help
+   Usage: cli.py [OPTIONS]
+
+   Options:
+     --api-cache_expire INTEGER  [default: 86400]
+     --api-cache_prefix TEXT     [default: proj_X_cache]
+     --api-url_base_path TEXT    [default: api/v2/]
+     --db-db_name TEXT           [default: proj_x]
+     --db-username TEXT          [default: proj_x_admin]
+     --db-password TEXT          [default: your_password]
+     --db-host TEXT              [default: 127.0.0.1]
+     --help                      Show this message and exit.
+
+
+The option do change the value of configuration property.
+
+.. code:: console
+
+   $ python -m proj_X.cli
+   cache_expire = 86400
+   $ python -m proj_X.cli --api-cache_expire 33
+   cache_expire = 33
 
 
 Advanced Usage
@@ -217,7 +282,7 @@ Use ``Conf.load_conf_file(path)`` or ``Conf.load_conf_module(module_name)`` to
 load configuration files, or use ``Conf.load_envvars(prefix)`` to load
 configuration from environment variable. No matter the loading statement is
 located before or after groups/properties declaration, property values in
-configuration file always override default values. It's possible to load 
+configuration file always override default values. It's possible to load
 configuration multiple times, the latter one would replace values from former loading.
 
 Be aware, *you should access your configuration properties after load
@@ -225,7 +290,7 @@ configuration files.* If not, you might get wrong/default value. Therefore, we
 usually load configuration file right after the statement of creating the
 ``Conf`` object.
 
-The code in the section `Initialize Conf object`_ is a simple example that loads only through module importing. 
+The code in the section `Initialize Conf object`_ is a simple example that loads only through module importing.
 Here's an much more complex example that demostrates how to dynamically select and load configurations.
 
 .. code:: python
@@ -324,3 +389,8 @@ To-Dos
 - A plugin for `Click <http://click.pocoo.org/5/>`_ arg `argparse <https://docs.python.org/3/library/argparse.html>`_  that adds command line options for altering configuration properties.
 - Copy-on-write mechenism in ``conf.mutate_locally()`` for better performance and memory usage.
 - API reference page
+
+.. _click: http://click.pocoo.org/
+.. _pip: https://pip.pypa.io/en/stable/
+.. _virtualenv: https://hynek.me/articles/virtualenv-lives/
+.. _poetry: https://poetry.eustace.io/
