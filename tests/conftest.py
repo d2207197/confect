@@ -1,5 +1,7 @@
+import datetime as dt
 import textwrap
 
+import pendulum as pdl
 import pytest
 
 from confect import Conf
@@ -17,7 +19,11 @@ def conf():
     with conf.declare_group('yummy') as g:
         g.kind = 'seafood'
         g.name = 'fish'
-        g.weight = 10
+        g.weight = 10.5
+        g.rank = 3
+        g.sold = True
+        g.some_day = dt.date(2018, 6, 1)
+        g.some_time = pdl.datetime(2018, 6, 1, 3, 2, tz='Asia/Taipei')
     return conf
 
 

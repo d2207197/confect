@@ -6,7 +6,7 @@ import weakref
 from contextlib import contextmanager
 from copy import deepcopy
 
-import confect.parser
+import confect.prop_type
 from confect.error import (ConfGroupExistsError, FrozenConfGroupError,
                            FrozenConfPropError, UnknownConfError)
 
@@ -39,7 +39,7 @@ Undefined = Undefined()
 
 class ConfProperty:
 
-    __slots__ = ('_value', 'default', 'parser')
+    __slots__ = ('_value', 'default', 'prop_type')
 
     def __init__(self, default=Undefined, parser=None):
         '''Create configuration property with details
@@ -73,8 +73,10 @@ class ConfProperty:
         self.default = default
         self._value = Undefined
         if parser is None:
-            parser = confect.parser.of_value(default)
-        self.parser = parser
+            prop_type = confect.prop_type.of_value(default)
+        else:
+            prop_type = confect.prop_type.PropertyType(type(default), parser)
+        self.prop_type = prop_type
 
     @property
     def value(self):
@@ -87,10 +89,14 @@ class ConfProperty:
     def value(self, value):
         self._value = value
 
+    def click_callback(self, ctx, param, value):
+        if param.default != value:
+            self._value = value
+
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '
                 f'default={self.default!r} value={self._value!r} '
-                f'parser={self.parser}>')
+                f'prop_type={self.prop_type}>')
 
 
 class Conf:
@@ -363,6 +369,29 @@ class Conf:
     def prop(self, *args, **kwargs):
         return ConfProperty(*args, **kwargs)
 
+    def _iter_props(self):
+        for group_name, group in self._conf_groups.items():
+            for prop_name, prop in group._properties.items():
+                yield group_name, prop_name, prop
+
+    def click_options(self, cmd_func):
+        '''Attaches all configurations to the command in
+        the `--<group>-<prop>` form.'''
+        import click
+
+        props = reversed(list(self._iter_props()))
+
+        for group_name, prop_name, prop in props:
+            cmd_func = click.option(
+                f'--{group_name}-{prop_name}',
+                default=prop.default,
+                callback=prop.click_callback,
+                expose_value=False,
+                type=prop.prop_type.click_param_type,
+                show_default=True)(cmd_func)
+
+        return cmd_func
+
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '
                 f'groups={list(self._conf_groups.keys())}>')
@@ -460,7 +489,7 @@ class ConfGroup:
         return new_self
 
     def parse_prop(self, prop, string):
-        return self._properties[prop].parser(string)
+        return self._properties[prop].prop_type.parser(string)
 
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '

@@ -22,19 +22,19 @@ def test_load_multiple_file(conf, conf1_file, conf2_file):
     assert conf.dummy.y == 'some string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'fish'
-    assert conf.yummy.weight == 10
+    assert conf.yummy.weight == 10.5
     conf.load_file(conf1_file)
     assert conf.dummy.x == 5
     assert conf.dummy.y == 'other string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'fish'
-    assert conf.yummy.weight == 10
+    assert conf.yummy.weight == 10.5
     conf.load_file(conf2_file)
     assert conf.dummy.x == 6
     assert conf.dummy.y == 'other string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'octopus'
-    assert conf.yummy.weight == 10
+    assert conf.yummy.weight == 10.5
 
 
 def test_load_multiple_file2(conf, conf1_file, conf2_file):
@@ -42,19 +42,19 @@ def test_load_multiple_file2(conf, conf1_file, conf2_file):
     assert conf.dummy.y == 'some string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'fish'
-    assert conf.yummy.weight == 10
+    assert conf.yummy.weight == 10.5
     conf.load_file(conf2_file)
     assert conf.dummy.x == 6
     assert conf.dummy.y == 'some string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'octopus'
-    assert conf.yummy.weight == 10
+    assert conf.yummy.weight == 10.5
     conf.load_file(conf1_file)
     assert conf.dummy.x == 5
     assert conf.dummy.y == 'other string'
     assert conf.yummy.kind == 'seafood'
     assert conf.yummy.name == 'octopus'
-    assert conf.yummy.weight == 10
+    assert conf.yummy.weight == 10.5
 
 
 def test_load_conf_before_declare(conf1_file, conf2_file):
