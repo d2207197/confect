@@ -26,7 +26,9 @@ Why you need a configuration library?
 How confect differs from others?
 -------------------------------------
 
-- loads Python configuration files. This makes it possible to
+- **Python configuration files**
+
+  This makes it possible to
 
   + have complex type objects as configuration values, like Decimal, timedelta
     or any class instance
@@ -35,14 +37,32 @@ How confect differs from others?
   + read other TOML/YMAL/JSON/ini files or even environment variables in the
     configuration file.
 
-- supports multiple configuration file loading ways and can load multiple times.
-  It loads configuration file through a given file path, or through module importing.
-- loads configurations properties from environment variable.
-  It's convenient if you want to change single or some properties values and don't want to modify the configuration file.
-- attachs command line options to some click_ command.
-- forces users to predefine configuration properties for readability and maintainability.
-- Immutable conf object for reducing the possibility of making errors.
-  No one should modify configuration too dynamically as if they are global variables.
+- **can load configuration file through module importing**
+
+  Confect loads configuration file through a given file path, or through module importing.
+  It's easy to control the source of configuration file through ``PYTHONPATH``.
+  
+- **can load configuration file multiple times**
+
+  Sometimes we need multiple configuration files — one for project,
+  one for team and one for personal use.
+  And we want that the personal configuration file has the highest priority.
+  If there's a configuration setting existing in that file, it would override values
+  from other files.
+  
+- **loads configurations properties from environment variable**
+
+  This feature is convenient if you want to change a single or some properties values,
+  and don't want to modify the configuration file.
+  
+- **attachs command line options to some click_ command**
+
+  You can change any configuration value through command line options, if your command is created by click_.
+
+- **better maintainability**
+
+  Confect forces users to define configuration properties and set a default value before using them.
+  And the ``conf`` object is immutable for reducing the possibility of making errors.
 
 
 Install
@@ -394,6 +414,7 @@ To-Dos
 - A plugin for `Click <http://click.pocoo.org/5/>`_ arg `argparse <https://docs.python.org/3/library/argparse.html>`_  that adds command line options for altering configuration properties.
 - Copy-on-write mechenism in ``conf.mutate_locally()`` for better performance and memory usage.
 - API reference page
+
 
 .. _click: http://click.pocoo.org/
 .. _pip: https://pip.pypa.io/en/stable/
