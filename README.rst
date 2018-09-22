@@ -34,7 +34,7 @@ How confect differs from others?
   It loads configuration file through a given file path, or through module importing.
 - loads configurations properties from environment variable.
   It's convenient if you want to change single or some properties values and don't want to modify the configuration file.
-- attachs command line options to some click_ command.
+- attachs command line options to some `click`_ command.
 - forces users to predefine configuration properties for readability and maintainability.
 - Immutable conf object for reducing the possibility of making errors.
   No one should modify configuration too dynamically as if they are global variables.
