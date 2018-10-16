@@ -491,6 +491,12 @@ class ConfGroup:
     def parse_prop(self, prop, string):
         return self._properties[prop].prop_type.parser(string)
 
+    def as_dict(self):
+        return {
+            name: prob.value
+            for name, prob in self._properties.items()
+        }
+
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '
                 f'{self._name} properties={list(self._properties.keys())}>')
