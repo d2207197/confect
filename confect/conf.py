@@ -39,9 +39,9 @@ Undefined = Undefined()
 
 class ConfProperty:
 
-    __slots__ = ('_value', 'default', 'prop_type')
+    __slots__ = ('_value', 'default', 'prop_type', 'desc')
 
-    def __init__(self, default=Undefined, parser=None):
+    def __init__(self, default=Undefined, parser=None, desc=''):
         '''Create configuration property with details
 
         >>> import confect
@@ -77,6 +77,7 @@ class ConfProperty:
         else:
             prop_type = confect.prop_type.PropertyType(type(default), parser)
         self.prop_type = prop_type
+        self.desc = desc
 
     @property
     def value(self):
@@ -96,7 +97,11 @@ class ConfProperty:
     def __repr__(self):
         return (f'<{__name__}.{type(self).__qualname__} '
                 f'default={self.default!r} value={self._value!r} '
-                f'prop_type={self.prop_type}>')
+                f'prop_type={self.prop_type}>'
+                f'desc={self.desc}')
+    
+    def __str__(self):
+        return f'{self.desc} [default: {self.default!s}, value: {self.value!s}]'
 
 
 class Conf:
@@ -388,6 +393,7 @@ class Conf:
                 callback=prop.click_callback,
                 expose_value=False,
                 type=prop.prop_type.click_param_type,
+                help=prop.desc,
                 show_default=True)(cmd_func)
 
         return cmd_func
