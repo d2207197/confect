@@ -13,3 +13,9 @@ class FrozenConfGroupError(TypeError):
 
 class ConfGroupExistsError(ValueError):
     pass
+
+class ParameterError(Exception):
+    pass
+
+class ParseError(Exception):
+    pass

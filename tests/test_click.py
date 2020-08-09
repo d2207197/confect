@@ -87,7 +87,8 @@ def test_other_types(conf, click_runner):
     result = click_runner.invoke(
         cli, ['--yummy-some_day', '2018-08-03',
               '--yummy-some_time', '2018-08-03T03:03+08:00',
-              ])
+              ],
+        catch_exceptions=False)
     assert result.output == ('yummy.some_day = 2018-08-03\n'
                              'yummy.some_time = 2018-08-03T03:03:00+08:00\n')
     assert conf.yummy.some_day == dt.date(2018, 8, 3)

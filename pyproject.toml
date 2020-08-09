@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "confect"
-version = "0.3.2"
+version = "0.4.0"
 description = "a Python configuration library loads Python configuration files"
-authors = ["顏孜羲 <joseph.yen@gmail.com>"]
+authors = ["Yen, Tzu-Hsi <joseph.yen@gmail.com>"]
 license = "apache-2.0"
 readme = "README.rst"
 
@@ -19,8 +19,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.6"
-pendulum = ">=1.4.0"
 click = { version = ">=2.0", optional = true }
+pendulum = { version = "^2.0.0", optional = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
@@ -35,7 +35,9 @@ mypy = "^0.620.0"
 pytest-pudb = "^0.6.0"
 pudb = "^2018.1"
 ptipython = "^1.0"
+ipython = "^7.16.1"
 
 
 [tool.poetry.extras]
 click = ["click"]
+pendulum = ["pendulum"]
