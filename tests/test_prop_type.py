@@ -55,7 +55,7 @@ def test_declare_custom_parser1():
 
     with conf.declare_group('yo') as g:
         g.some_prop = conf.prop(
-            dt.timedelta(days=3), simple_timedelta_parser)
+            dt.timedelta(days=3), parser=simple_timedelta_parser)
 
 
 def test_declare_custom_parser2():

@@ -49,7 +49,7 @@ class ConfProperty:
 
     __slots__ = ("_value", "default", "prop_type", "desc")
 
-    def __init__(self, default=Undefined, parser=None, desc="", prop_type=None):
+    def __init__(self, default=Undefined, *, parser=None, desc="", prop_type=None):
         """Create configuration property with details
 
         >>> import confect
