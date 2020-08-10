@@ -266,20 +266,44 @@ argument.
    confect.error.FrozenConfPropError: Configuration properties are frozen.
 
 
-Configuration File
-------------------
+Setting Configuration Properties
+---------------------------------
+
+Configuration properties are immutable in the application runtime. This feature make sure
+ the runtime environment is stable without unexpected behavior.
+
+The standard ways to change the configuration properties are:
+
+1. Load from Python file ``conf.load_module(module_name)`` and ``conf.load_file(file_path)``. (Check `Loading Configuration File`_)
+2. Load from environment variable ``conf.load_envvar(prefix)``. (Check `Loading Environment Variable`_)
+3. Override by CLI options ``conf.click_options(click_command)``. (Check `Add command line options`_)
+
+Confect still provide a hacky way to change them in the runtime, but use them wisely.
+
+1. Alter configuration in the runtime(Check `Runtime Configuration Altering`_)
+
+
+Loading Configuration File
+--------------------------
 
 Confect loads Python configuration files. That makes your configuration file
 programmable and unrestricted as we described in the section `How confect
 differs from others?`_.
 
-Configuration File Loading
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 Two ways to load configuration file.
 
-1. Through module importing: ``conf.load_module(module_name)``
+1. Through Python module importing: ``conf.load_module(module_name)``
 2. Through Python file reading: ``conf.load_file(file_path)``
+
+No matter the loading statement is located before or after properties
+declaration, property values in configuration file always override default
+values in the declarations. It's possible to load configuration file multiple times,
+the latter one would replace values from former loading.
+
+Be aware, *you should access your configuration properties after load
+configuration files.* If not, you might get wrong/default value. Therefore, we
+usually load configuration file right after the statement of creating the
+``Conf`` object.
 
 .. code:: python
 
@@ -305,12 +329,11 @@ Use ``PYTHONPATH`` environment varibale to control the source of configuration f
    $ export PYTHONPATH=.
    $ python your_application.py
 
+
 Write Configuration File
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It's not necessary and is unusual to have all configuration properties be defined in the
-configuration file. *Put only those configuration properties and corresponding
-values that you want to override the configuration file.*
+Configuration files are written in Python, but they are isolated from your application. The configuration declaration(check `Configuration Properties Declaration`_) use the ``conf`` object directly, and declare properties with default value with ``conf.declar_group(...)``. While configuration files use ``confect.c`` to override declared properties. Configuration files shouldn't be import directly, they can only be loaded with ``conf.load_module(module_name))`` or ``conf.load_file(file_path)``.
 
 In configuration file, import ``confect.c`` object and set all properties on it
 as if ``c`` is the conf object. Here's an example of configuration file.
@@ -339,27 +362,52 @@ as if ``c`` is the conf object. Here's an example of configuration file.
    c.db.password = db_secret['password']
 
 
+It's not necessary and is unusual to have all configuration properties be defined in the
+configuration file. *Put only those configuration properties that you want to override to the configuration file.*
+
 You can set any property in any configuration group onto the ``c`` object.
 However, **they are only accessable if you declared it in the source code with**
-``Conf.declare_group(group_name)``.
+``Conf.declare_group(group_name)``. See `Configuration Properies Declaration`_ for details.
 
 The ``c`` object only exits when loading a python configuration file, it's not
 possible to import it in your source code.
 
------------------------
+
+Advanced Usage
+===================
+
+Loading Environment Variables
+---------------------------
 
    # overrides configuration with environment variables with the prefix `projx`
    conf.load_envvars('projx')
 
+``Conf.load_envvars(prefix: str)`` automatically searches environment variables
+in ``<prefix>__<group>__<prop>`` format. All of these three identifier are case
+sensitive. If you have a configuration property ``conf.cache.expire_time`` and
+you call ``Conf.load_envvars('projx')``. It will set that ``expire_time``
+property to the parsed value from ``projx__cache__expire_time`` environment
+variable.
 
-Add command line options
+>>> import os
+>>> os.environ['projx__cache__expire'] = '3600'
+
+>>> conf = confect.Conf()
+>>> conf.load_envvars('projx')  # doctest: +SKIP
+
+If ``cache.expire`` has been declared, then
+
+>>> conf.cache.expire
+3600
+
+Command Line Options
 -------------------------
 
 ``conf.click_options`` decorator attachs all declared configuration to a click_
 command.
 
 
-``projx/cli.py``
+``projx/__main__.py``
 
 .. code:: python
 
@@ -369,7 +417,7 @@ command.
    @click.command()
    @conf.click_options
    def cli():
-       click.echo(f'cache_expire = {conf.api.cache_expire}')
+       click.echo(f'cache_expire: {conf.api.cache_expire}')
 
    if __name__ == '__main__':
        cli()
@@ -397,32 +445,29 @@ The option do change the value of configuration property.
 .. code:: console
 
    $ python -m projx.cli
-   cache_expire = 86400
+   cache_expire: 86400
    $ python -m projx.cli --api-cache_expire 33
-   cache_expire = 33
+   cache_expire: 33
 
 
-Advanced Usage
-==============
+Parser
+---------------
 
-Loading Configuration
----------------------
+Confect includes predefined parsers of these primitive types.
 
-Configuration properties and groups are immutable. The standard way to change it
-is to load configuration from files or environment variables.
+- ``str``: ``s``
+- ``int``: ``ast.literal_eval(s)``
+- ``float``: ``ast.literal_eval(s)``
+- ``bytes``: ``s.encode(encoding)``
+- ``datetime.datetime`` : ``dt.datetime.strptime(s, fmt)``
+- ``datetime.date`` : ``dt.datetime.strptime(s, fmt).date()``
+- ``tuple`` : ``json.loads(s)``
+- ``dict``: ``json.loads(s)``
+- ``list``: ``json.loads(s)``
 
-Use ``Conf.load_file(path)`` or ``Conf.load_module(module_name)`` to
-load configuration files, or use ``Conf.load_envvars(prefix)`` to load
-configuration from environment variable. No matter the loading statement is
-located before or after groups/properties declaration, property values in
-configuration file always override default values. It's possible to load
-configuration multiple times, the latter one would replace values from former loading.
 
-Be aware, *you should access your configuration properties after load
-configuration files.* If not, you might get wrong/default value. Therefore, we
-usually load configuration file right after the statement of creating the
-``Conf`` object.
-
+Complex Configuration Loading
+-----------------------------
 The code in the section `Conf Object`_ is a simple example that loads only through module importing.
 Here's an much more complex example that demostrates how to dynamically select and load configurations.
 
@@ -457,43 +502,8 @@ Here's an much more complex example that demostrates how to dynamically select a
    # overrides configuration with environment variables
    conf.load_envvars('projx')
 
-
-Load Environment Variables
----------------------------
-
-``Conf.load_envvars(prefix: str)`` automatically searches environment variables
-in ``<prefix>__<group>__<prop>`` format. All of these three identifier are case
-sensitive. If you have a configuration property ``conf.cache.expire_time`` and
-you call ``Conf.load_envvars('projx')``. It will set that ``expire_time``
-property to the parsed value of ``projx__cache__expire_time`` environment
-variable.
-
->>> import os
->>> os.environ['projx__cache__expire'] = '3600'
-
->>> conf = confect.Conf()
->>> conf.load_envvars('projx')  # doctest: +SKIP
-
-If ``cache.expire`` has been declared, then
-
->>> conf.cache.expire
-3600
-
-Confect includes predefined parsers of these primitive types.
-
-- ``str``: ``s``
-- ``int``: ``int(s)``
-- ``float``: ``float(s)``
-- ``bytes``: ``s.decode()``
-- ``datetime.datetime`` : ``pendulum.parse(s)``
-- ``datetime.date`` : ``pendulum.parse(s).date()``
-- ``Decimal`` : ``decimal.Decimal(s)``
-- ``tuple`` : ``json.loads(s)``
-- ``dict``: ``json.loads(s)``
-- ``list``: ``json.loads(s)``
-
-Mutable Environment
------------------
+Runtime Configuration Altering
+-------------------------------
 
 ``Conf.mutate_locally()`` context manager creates an environment that makes
 ``Conf`` object temporarily mutable. All changes would be restored when it
@@ -519,10 +529,9 @@ To-Dos
 ======
 
 - A public interface for exporting a conf group into a dictionary
-- A plugin for `Click <http://click.pocoo.org/5/>`_ arg `argparse <https://docs.python.org/3/library/argparse.html>`_  that adds command line options for altering configuration properties.
+- A plugin for `argparse <https://docs.python.org/3/library/argparse.html>`_  that adds command line options for altering configuration properties.
 - Copy-on-write mechenism in ``conf.mutate_locally()`` for better performance and memory usage.
 - API reference page
-
 
 .. _click: http://click.pocoo.org/
 .. _pip: https://pip.pypa.io/en/stable/
