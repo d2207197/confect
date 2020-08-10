@@ -1,6 +1,9 @@
 
 Confect - a Python configuration library loads Python configuration files
-=============================================================================
+**************************************************************************
+
+Introduction
+==============
 
 Why you need a configuration library?
 -------------------------------------
@@ -78,7 +81,7 @@ Just like other Python packages, install it by pip_ into a virtualenv_
    $ pip install confect
 
 
-Basic Usage
+Basics
 ===========
 
 Conf Object
@@ -209,7 +212,6 @@ After the group and properties are declared, they are accessable through
 the ``conf`` object directly, like ``conf.group_name.prop_name``.
 
 ``projx/api.py``
-.................
 
 .. code:: python
 
@@ -221,7 +223,6 @@ the ``conf`` object directly, like ``conf.group_name.prop_name``.
        return a + b
 
 ``projx/db.py``
-.................
 
 .. code:: python
 
@@ -315,7 +316,6 @@ In configuration file, import ``confect.c`` object and set all properties on it
 as if ``c`` is the conf object. Here's an example of configuration file.
 
 ``local_conf.py``
-.................
 
 .. code:: python
 
@@ -360,7 +360,6 @@ command.
 
 
 ``projx/cli.py``
-.................
 
 .. code:: python
 
@@ -424,7 +423,7 @@ configuration files.* If not, you might get wrong/default value. Therefore, we
 usually load configuration file right after the statement of creating the
 ``Conf`` object.
 
-The code in the section `Initialize Conf object`_ is a simple example that loads only through module importing.
+The code in the section `Conf Object`_ is a simple example that loads only through module importing.
 Here's an much more complex example that demostrates how to dynamically select and load configurations.
 
 .. code:: python
