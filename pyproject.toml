@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "confect"
-version = "0.4.1"
+version = "0.4.2"
 description = "a Python configuration library loads Python configuration files"
 authors = ["Yen, Tzu-Hsi <joseph.yen@gmail.com>"]
 license = "apache-2.0"

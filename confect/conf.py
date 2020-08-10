@@ -472,7 +472,7 @@ class ConfGroupPropertySetter:
             self[property_name] = value
 
     def __getitem__(self, property_name):
-        return self._conf_group._properties.setdefault(property_name, ConfProperty())
+        return self._conf_group._properties[property_name]
 
     def __setitem__(self, property_name, default):
         if isinstance(default, ConfProperty):
