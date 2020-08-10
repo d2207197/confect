@@ -1,10 +1,17 @@
 import datetime as dt
 import textwrap
+from enum import Enum
 
 import pendulum as pdl
 import pytest
 
 from confect import Conf
+
+
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
 
 
 @pytest.fixture(scope='function')
@@ -24,6 +31,10 @@ def conf():
         g.sold = True
         g.some_day = dt.date(2018, 6, 1)
         g.some_time = pdl.datetime(2018, 6, 1, 3, 2, tz='Asia/Taipei')
+        g.color = conf.prop(
+            default=Color.RED,
+            parser=lambda s: getattr(Color, s.upper())
+        )
     return conf
 
 

@@ -99,7 +99,7 @@ class ConfProperty:
             warnings.warn(
                 "`parser` argument of ConfProperty is deprecated.", DeprecationWarning
             )
-            prop_type = confect.prop_type.make_prop_type(type(default), parser)
+            prop_type = confect.prop_type.make_prop_type(type(default), parser)()
         elif prop_type is not None:
             if not isinstance(prop_type, confect.prop_type.PropertyType):
                 raise ValueError(

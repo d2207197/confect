@@ -31,6 +31,7 @@ Options:
   --yummy-sold BOOLEAN        [default: True]
   --yummy-some_day DATE       [default: 2018-06-01]
   --yummy-some_time DATETIME  [default: 2018-06-01T03:02:00+08:00]
+  --yummy-color COLOR         [default: Color.RED]
   --help                      Show this message and exit.
 ''')
 

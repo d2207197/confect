@@ -120,7 +120,16 @@ class String(PropertyType):
 
 
 def make_prop_type(python_type, parser):
-    return type(python_type.__name__, (PropertyType,), {"parse": parser})
+    name = python_type.__name__.capitalize()
+
+    def parse(self, s):
+        return parser(s)
+
+    return type(
+        name,
+        (PropertyType,),
+        {"parse": parse, "name": name, "python_type": python_type},
+    )
 
 
 class Bytes(PropertyType):
