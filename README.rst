@@ -275,8 +275,8 @@ Configuration properties are immutable in the application runtime. This feature 
 The standard ways to change the configuration properties are:
 
 1. Load from Python file ``conf.load_module(module_name)`` and ``conf.load_file(file_path)``. (Check `Loading Configuration File`_)
-2. Load from environment variable ``conf.load_envvar(prefix)``. (Check `Loading Environment Variable`_)
-3. Override by CLI options ``conf.click_options(click_command)``. (Check `Add command line options`_)
+2. Load from environment variable ``conf.load_envvar(prefix)``. (Check `Loading Environment Variables`_)
+3. Override by CLI options ``conf.click_options(click_command)``. (Check `Command Line Options`_)
 
 Confect still provide a hacky way to change them in the runtime, but use them wisely.
 
@@ -367,7 +367,7 @@ configuration file. *Put only those configuration properties that you want to ov
 
 You can set any property in any configuration group onto the ``c`` object.
 However, **they are only accessable if you declared it in the source code with**
-``Conf.declare_group(group_name)``. See `Configuration Properies Declaration`_ for details.
+``Conf.declare_group(group_name)``. See `Configuration Properties Declaration`_ for details.
 
 The ``c`` object only exits when loading a python configuration file, it's not
 possible to import it in your source code.
@@ -377,7 +377,7 @@ Advanced Usage
 ===================
 
 Loading Environment Variables
----------------------------
+------------------------------
 
    # overrides configuration with environment variables with the prefix `projx`
    conf.load_envvars('projx')

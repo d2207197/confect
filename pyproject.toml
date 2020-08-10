@@ -36,6 +36,7 @@ pytest-pudb = "^0.6.0"
 pudb = "^2018.1"
 ptipython = "^1.0"
 ipython = "^7.16.1"
+readme_renderer = "^26.0"
 
 
 [tool.poetry.extras]
