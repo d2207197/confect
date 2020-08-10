@@ -416,6 +416,9 @@ class Conf:
 
     @fnt.wraps(ConfProperty.__init__)
     def prop(self, *args, **kwargs):
+        warnings.warn(
+            "`Conf.prop()` is deprecated. Use confect.prop instead.", DeprecationWarning
+        )
         return ConfProperty(*args, **kwargs)
 
     def _iter_props(self):
@@ -557,3 +560,8 @@ class ConfGroup:
             f"<{__name__}.{type(self).__qualname__} "
             f"{self._name} properties={list(self._properties.keys())}>"
         )
+
+
+@fnt.wraps(ConfProperty.__init__)
+def prop(*args, **kwargs):
+    return ConfProperty(*args, **kwargs)

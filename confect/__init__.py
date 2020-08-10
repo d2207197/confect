@@ -1,4 +1,4 @@
-from .conf import Conf
+from .conf import Conf, prop
 from .error import (
     ConfGroupExistsError,
     FrozenConfGroupError,
